@@ -1,11 +1,17 @@
 export const useApi = () => {
-    const API_URL = '';
+    {/* API URL */ }
+    const API_URL = 'https://api.ae.codes';
 
     {/* Get high scores */ }
     const getHighScores = async (game) => {
         try {
-            // const response = await fetch(`${API_URL}/api/leaderboard/${game.name}`);
-            const response = await fetch(`https://mocki.io/v1/36dc45d4-6b02-4386-a261-5accd475787e`);
+            const response = await fetch(`${API_URL}/scores/${game.name.toLowerCase()}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                }
+            });
 
             if (!response.ok) {
                 throw new Error(`Failed to get high scores! Status: ${response.status}`);
@@ -21,14 +27,14 @@ export const useApi = () => {
     {/* Submit high score */ }
     const submitHighScore = async (game, name, score) => {
         try {
-            const response = await fetch(`${API_URL}/api/leaderboard`, {
+            const response = await fetch(`${API_URL}/scores`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    game: game.name,
-                    player: name,
+                    game: game.toLowerCase(),
+                    name: name,
                     score: score,
                     timestamp: new Date().toISOString()
                 })

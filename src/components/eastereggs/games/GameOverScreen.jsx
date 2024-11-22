@@ -5,6 +5,7 @@ export default function GameOverScreen({ game, score, onSubmit }) {
     const [submittable, setSubmittable] = useState(false);
     const [playerName, setPlayerName] = useState('');
     const [showNameInput, setShowNameInput] = useState(false);
+    const [scoreSubmitted, setScoreSubmitted] = useState(false);
     const { submitHighScore } = useApi();
 
     const handleCancel = () => {
@@ -13,11 +14,15 @@ export default function GameOverScreen({ game, score, onSubmit }) {
     };
 
     {/* Handle submit score */ }
-    const handleSubmitScore = () => {
+    const handleSubmitScore = async () => {
         if (playerName.trim()) {
-            console.log(`Submitting score ${score} for player ${playerName}, ${game}`);
-            setShowNameInput(false);
-            onSubmit();
+            try {
+                const result = await submitHighScore(game, playerName, score);
+                setScoreSubmitted(true);
+                setShowNameInput(false);
+            } catch (error) {
+                console.error('Failed to submit score:', error);
+            }
         }
     };
 
@@ -59,14 +64,17 @@ export default function GameOverScreen({ game, score, onSubmit }) {
                         </div>
                     </div>
                 ) : (
-                    <div className="flex gap-4 w-2/4 mx-auto">
+                    <div className={`flex gap-4 w-2/4 mx-auto ` + (scoreSubmitted ? 'flex-col' : '')}>
                         <button
                             onClick={onSubmit}
-                            className={`px-4 py-2 bg-green-500 text-black rounded-lg hover:bg-green-600 ${score > 0 ? 'w-1/2' : 'w-full'}`}
+                            className={`px-4 py-2 bg-green-500 text-black rounded-lg hover:bg-green-600 ${score > 0 && !scoreSubmitted ? 'w-1/2' : 'w-full'}`}
                         >
                             Play Again
                         </button>
-                        {score > 0 && (
+                        {scoreSubmitted && (
+                            <p className="text-xl text-green-500">Score Submitted!</p>
+                        )}
+                        {score > 0 && !scoreSubmitted && (
                             <button
                                 onClick={() => setShowNameInput(true)}
                                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 w-1/2"

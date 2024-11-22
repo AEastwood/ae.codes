@@ -162,6 +162,8 @@ export default function Game({ onExit }) {
 
         {/* Setup event listeners */ }
         const handleKeyDown = (e) => {
+            if (gameOver) return;
+            
             if (e.code === 'Space') {
                 if (gameOver) {
                     resetGame();

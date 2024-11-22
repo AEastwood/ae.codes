@@ -37,12 +37,12 @@ export default function GamesModal({ setShowGamesModal, visible }) {
                         </button>
                     </div>
 
-                    <div className="hidden md:block flex flex-wrap gap-4 justify-center p-8">
+                    <div className="hidden md:flex flex-wrap gap-4 justify-center p-8">
                         {games.map((game) => (
                             <button
                                 key={game.name}
                                 onClick={() => setGame(game)}
-                                className="px-6 py-4 bg-white text-black rounded hover:bg-gray-200 font-bold text-lg"
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                                 title={game.name}
                             >
                                 {game.name}
