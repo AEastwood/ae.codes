@@ -1,0 +1,26 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: Recoleta;
+    src: url(assets/fonts/recoleta/Recoleta-Light.woff2);
+}
+/* Base styles */
+:root {
+    --text-color: white;
+}
+
+.profile-picture {
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.social-media-icon,
+svg {
+    fill: var(--text-color);
+    color: var(--text-color);
+}

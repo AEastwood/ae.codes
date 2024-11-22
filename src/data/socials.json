@@ -1,0 +1,36 @@
+{
+  "links": [
+    {
+      "name": "GitHub",
+      "icon": "/images/socials/github.svg",
+      "url": "https://github.com/aeastwood"
+    },
+    {
+      "name": "LinkedIn",
+      "icon": "/images/socials/linkedin.svg",
+      "url": "https://www.linkedin.com/in/adeastwood/"
+    },
+    {
+      "name": "Instagram",
+      "icon": "/images/socials/instagram.svg",
+      "url": "https://www.instagram.com/aeasywood/"
+    },
+    {
+      "name": "X",
+      "icon": "/images/socials/x.svg",
+      "url": "https://x.com/adeastwood"
+    },
+    {
+      "name": "Email Me",
+      "icon": "/images/socials/mail.svg",
+      "url": "mailto:hello@ae.codes"
+    }
+  ],
+  "easterEggs": {
+    "games": {
+      "name": "Games",
+      "icon": "/images/socials/games.svg",
+      "url": "#"
+    }
+  }
+}
