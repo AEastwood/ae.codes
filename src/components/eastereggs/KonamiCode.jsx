@@ -26,10 +26,7 @@ export default function buttonCombination({
         let index = 0;
 
         const handleKeydown = (event) => {
-            const expectedKey = buttonCombination[index];
-            const keyPressed = event.code;
-
-            if (keyPressed !== expectedKey) {
+            if (event.code !== buttonCombination[index]) {
                 index = 0;
                 return;
             }
