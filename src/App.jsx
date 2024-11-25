@@ -18,8 +18,6 @@ function App() {
         setEasterEggsEnabled={setEasterEggsEnabled}
         showGamesModal={showGamesModal}
         setShowGamesModal={setShowGamesModal}
-        showLeaderboardsModal={showLeaderboardsModal}
-        setShowLeaderboardsModal={setShowLeaderboardsModal}
       />
 
       {/* My Profile Picture */}

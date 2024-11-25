@@ -6,8 +6,6 @@ export default function buttonCombination({
     setEasterEggsEnabled,
     setShowGamesModal,
     showGamesModal,
-    setShowLeaderboardsModal,
-    showLeaderboardsModal
 }) {
     useEffect(() => {
         const buttonCombination = [
