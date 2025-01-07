@@ -5,7 +5,7 @@ import Socials from './components/Socials'
 import KonamiCode from './components/eastereggs/KonamiCode'
 
 function App() {
-  const [easterEggsEnabled, setEasterEggsEnabled] = useState(true);
+  const [easterEggsEnabled, setEasterEggsEnabled] = useState(false);
   const [showGamesModal, setShowGamesModal] = useState(false);
 
   return (
