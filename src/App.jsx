@@ -5,13 +5,12 @@ import Socials from './components/Socials'
 import KonamiCode from './components/eastereggs/KonamiCode'
 
 function App() {
-  const [easterEggsEnabled, setEasterEggsEnabled] = useState(false);
+  const [easterEggsEnabled, setEasterEggsEnabled] = useState(true);
   const [showGamesModal, setShowGamesModal] = useState(false);
-  const [showLeaderboardsModal, setShowLeaderboardsModal] = useState(false);
 
   return (
     <div
-      className="flex flex-col gap-6 h-screen bg-gradient-to-br bg-gradient-to-tr from-indigo-500 to-blue-500 text-gray-100 justify-center items-center"
+      className="app flex flex-col gap-6 h-screen text-gray-100 justify-center items-center"
     >
       {/* Konami Code */}
       <KonamiCode
@@ -30,7 +29,6 @@ function App() {
       <Socials
         showEasterEggs={easterEggsEnabled}
         setShowGamesModal={setShowGamesModal}
-        setShowLeaderboardsModal={setShowLeaderboardsModal}
       />
     </div>
   )

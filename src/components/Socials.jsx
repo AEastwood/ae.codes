@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import socials from '../data/socials';
 import Button from './Button';
 
-function Socials({ showEasterEggs, setShowGamesModal, setShowLeaderboardsModal }) {
+function Socials({ showEasterEggs, setShowGamesModal }) {
     const easterEggs = socials?.easterEggs;
     const icons = socials?.links;
 

@@ -10,7 +10,7 @@ export default function Button({ onClick, socialIcon }) {
             case 'LinkedIn':
                 const timeout = setTimeout(() => {
                     window.location.href = socialIcon.url;
-                }, 2500);
+                }, 1500);
 
                 setHoverTimeout(timeout);
                 break;
