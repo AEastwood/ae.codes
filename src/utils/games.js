@@ -1,5 +1,6 @@
 import RunnerGame from '../components/eastereggs/games/runner/Game';
 import FlappyBird from '../components/eastereggs/games/flappybird/Game';
+import TetrisGame from '../components/eastereggs/games/tetris/Game';
 
 export const useGamesList = () => {
     return [
@@ -14,6 +15,12 @@ export const useGamesList = () => {
             instructions: 'Avoid the obstacles and jump to clear them',
             controls: ['Space or Left Mouse Button - Jump'],
             name: 'Runner'
+        },
+        {
+            component: TetrisGame,
+            instructions: 'Clear the lines to score points',
+            controls: ['Arrow Up - Rotate', 'Arrow Down - Soft Drop', 'Arrow Left - Move Left', 'Arrow Right - Move Right'],
+            name: 'Tetris'
         }
     ];
 };
