@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect } from "react";
+import PropTypes from 'prop-types';
 import GamesModal from "../modals/GamesModal";
 import MediaPlayer from "./MediaPlayer";
 
-export default function buttonCombination({
+export default function KonamiCode({
     setEasterEggsEnabled,
     setShowGamesModal,
     showGamesModal,
@@ -34,7 +35,11 @@ export default function buttonCombination({
         };
 
         document.addEventListener("keydown", handleKeydown);
-    }, []);
+        
+        return () => {
+            document.removeEventListener("keydown", handleKeydown);
+        };
+    }, [setEasterEggsEnabled]);
 
     return (
         <>
@@ -43,3 +48,9 @@ export default function buttonCombination({
         </>
     );
 }
+
+KonamiCode.propTypes = {
+    setEasterEggsEnabled: PropTypes.func.isRequired,
+    setShowGamesModal: PropTypes.func.isRequired,
+    showGamesModal: PropTypes.bool.isRequired
+};

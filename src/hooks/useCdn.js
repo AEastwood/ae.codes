@@ -1,4 +1,4 @@
-const CDN_BASE = 'https://cdn.esg.sh/ae-codes';
+const CDN_BASE = import.meta.env.VITE_CDN_BASE || 'https://cdn.esg.sh/ae-codes';
 
 export function useCdn() {
     const getUri = (path) => {

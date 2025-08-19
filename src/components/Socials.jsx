@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import socials from '../data/socials';
 import Button from './Button';
 
@@ -25,5 +25,10 @@ function Socials({ showEasterEggs, setShowGamesModal }) {
         </div>
     );
 }
+
+Socials.propTypes = {
+    showEasterEggs: PropTypes.bool.isRequired,
+    setShowGamesModal: PropTypes.func.isRequired
+};
 
 export default Socials; 

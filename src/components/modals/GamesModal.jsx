@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useGamesList } from '../../utils/games';
 import StartScreen from '../eastereggs/games/StartScreen';
 import Modal from './Modal';
@@ -11,12 +12,12 @@ export default function GamesModal({ setShowGamesModal, visible }) {
         setGame(null);
     }, [setShowGamesModal, visible]);
 
-    {/* Close game */ }
+    // Close game
     const closeGame = () => {
         setGame(null);
     };
 
-    {/* Close modal */ }
+    // Close modal
     const closeModal = () => {
         setShowGamesModal(false);
     };
@@ -44,6 +45,7 @@ export default function GamesModal({ setShowGamesModal, visible }) {
                                 onClick={() => setGame(game)}
                                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                                 title={game.name}
+                                aria-label={`Play ${game.name}`}
                             >
                                 {game.name}
                             </button>
@@ -58,3 +60,8 @@ export default function GamesModal({ setShowGamesModal, visible }) {
         </Modal>
     );
 }
+
+GamesModal.propTypes = {
+    setShowGamesModal: PropTypes.func.isRequired,
+    visible: PropTypes.bool.isRequired
+};

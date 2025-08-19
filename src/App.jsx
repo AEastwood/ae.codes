@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import Name from './components/Name'
 import ProfilePicture from './components/ProfilePicture'
 import Socials from './components/Socials'

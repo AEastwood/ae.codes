@@ -2,6 +2,10 @@ import RunnerGame from '../components/eastereggs/games/runner/Game';
 import FlappyBird from '../components/eastereggs/games/flappybird/Game';
 import TetrisGame from '../components/eastereggs/games/tetris/Game';
 
+/**
+ * Hook to get the list of available games
+ * @returns {Array} Array of game objects with component, instructions, controls, and name
+ */
 export const useGamesList = () => {
     return [
         {
