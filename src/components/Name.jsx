@@ -6,7 +6,6 @@ export default function Name() {
 
     const taglines = [
         "Building digital empires one commit at a time.",
-        "Turning coffee into code since forever.",
         "Architecting tomorrow's solutions today.",
         "Debugging the universe, one bug at a time.",
         "Crafting elegant solutions to complex problems.",
