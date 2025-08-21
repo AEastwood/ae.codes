@@ -1,64 +1,101 @@
-import ConfettiExplosion from 'react-confetti-explosion';
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useCdn } from '../hooks/useCdn';
-
-// Constants
-const EXPLOSION_DURATION = 7000;
-const PROFILE_IMAGE_SIZE = 'w-48';
-const HOVER_SCALE = 'hover:scale-[1.08]';
-const TRANSITION_DURATION = 'transition duration-250';
-const HOVER_SHADOW = 'hover:shadow-xl';
-const HOVER_CURSOR = 'hover:cursor-pointer';
+import feelGoodInc from '../assets/music/feel-good-inc.mp3';
 
 export default function ProfilePicture() {
     const { getUri } = useCdn();
-    const [isExploding, setIsExploding] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const audioRef = useRef(null);
 
-    const handleClick = () => {
-        setIsExploding(true);
-        // Easter egg console message - only in development
-        if (import.meta.env.DEV) {
-            console.log(`%c
-####        ####      #######        ####         ##        ###           ####         ##      #### 
-####     ######   ##############    ######      ####       #####         ######      #####    #####
-####   ######   ######     ######   ########    ####      #######        ######     ######     ####
-#### #####     ######        #####  #########   ####     #########      ########   ########    ####
-#########      #####         #####  ########### ####    #### ######     ######### #########    ####
-##########     #####         #####  ####  ##########   ####   ######    ### ######### ######   ####
-#### #######   ######        #####  ####    ########   ##############  ####  #######  %#####   ####
-####   #######  ######      #####   ####     #######  ####      #####  ####   #####    #####   ####
-####     ####### ##############     ####       ##### ####        ##### ###     ####    ######  ####
-####        #####    #######         ##          ##  ###          #### ###      #       ####   ####
-        `, 'color: red;');
+    useEffect(() => {
+        const audio = new Audio(feelGoodInc);
+        audioRef.current = audio;
+        
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                const newProgress = (audio.currentTime / audio.duration) * 100;
+                
+                // If progress hits 100%, reset to 0 and stop playing
+                if (newProgress >= 100) {
+                    setProgress(0);
+                    setIsPlaying(false);
+                    audio.pause();
+                    audio.currentTime = 0;
+                    window.dispatchEvent(new CustomEvent('musicProgress', { detail: { progress: 0 } }));
+                } else {
+                    setProgress(newProgress);
+                    window.dispatchEvent(new CustomEvent('musicProgress', { detail: { progress: newProgress } }));
+                }
+            }
+        });
+
+        audio.addEventListener('ended', () => {
+            setIsPlaying(false);
+            setProgress(0);
+        });
+
+        const handleSeek = (event) => {
+            const pct = Math.max(0, Math.min(100, event.detail?.progress ?? 0));
+            if (audio.duration) {
+                audio.currentTime = (pct / 100) * audio.duration;
+                setProgress(pct);
+            }
+        };
+
+        window.addEventListener('musicSeek', handleSeek);
+
+        return () => {
+            window.removeEventListener('musicSeek', handleSeek);
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
+
+    const togglePlayPause = () => {
+        if (audioRef.current) {
+            if (isPlaying) {
+                audioRef.current.pause();
+                setIsPlaying(false);
+            } else {
+                audioRef.current.play();
+                setIsPlaying(true);
+            }
         }
-    }
+    };
 
     return (
         <div className="relative">
-            <img
-                className={`mx-auto relative z-20 profile-picture rounded-md ${PROFILE_IMAGE_SIZE} mb-2 ${
-                    !isExploding ? `${HOVER_SCALE} ${TRANSITION_DURATION} ${HOVER_SHADOW} ${HOVER_CURSOR}` : ''
-                }`}
-                src={getUri('images/me-gorillaz.png')}
-                alt="Adam Eastwood"
-                title="Adam Eastwood (Psst... Inspect me! then click me!)"
-                onClick={handleClick}
-            />
+            <div className="relative group">
+                {/* Hover play/pause button */}
+                <div className="absolute inset-0 z-30 pointer-events-none">
+                    <button
+                        onClick={togglePlayPause}
+                        className="pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 hover:scale-110"
+                        title={isPlaying ? 'Pause' : 'Play'}
+                    >
+                        {isPlaying ? (
+                            <svg className="size-10 bg-gray-800 rounded-full" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM7 8a1 1 0 012 0v4a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v4a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                            </svg>
+                        ) : (
+                            <svg className="size-10 bg-gray-800 rounded-full" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                            </svg>
+                        )}
+                    </button>
+                </div>
 
-            <div className="w-full inherit pb-[50%] ml-[50%] absolute top-0 left-0 z-10">
-                {isExploding && (
-                    <ConfettiExplosion
-                        duration={EXPLOSION_DURATION}
-                        height="110vh"
-                        width={1500}
-                        force={0.65}
-                        particleSize={10}
-                        onComplete={() => setIsExploding(false)}
-                    />
-                )}
+                <img
+                    className="mx-auto relative z-20 profile-picture rounded-md w-48 mb-2 transition duration-250 hover:shadow-xl hover:cursor-pointer"
+                    src={getUri('images/me-gorillaz.png')}
+                    alt="Adam Eastwood"
+                    onClick={togglePlayPause}
+                />
             </div>
         </div>
-
     )
 }
 
