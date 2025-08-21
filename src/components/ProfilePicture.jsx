@@ -73,7 +73,9 @@ export default function ProfilePicture() {
                 <div className="absolute inset-0 z-30 pointer-events-none">
                     <button
                         onClick={togglePlayPause}
-                        className="pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition opacity-0 group-hover:opacity-100 hover:scale-110"
+                        className={`pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition hover:scale-110 ${
+                            isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}
                         title={isPlaying ? 'Pause' : 'Play'}
                     >
                         {isPlaying ? (

@@ -63,9 +63,7 @@ export default function Name() {
             setIsVisible(false);
             
             setTimeout(() => {
-                setCurrentTaglineIndex((prevIndex) => 
-                    (prevIndex + 1) % taglines.length
-                );
+                setCurrentTaglineIndex(Math.floor(Math.random() * taglines.length));
                 setIsVisible(true);
             }, 300);
         }, 3000);
@@ -85,50 +83,19 @@ export default function Name() {
         return () => window.removeEventListener('musicProgress', handleProgressUpdate);
     }, []);
 
-    const handleSeekByClick = (e) => {
-        const el = containerRef.current;
-        if (!el) return;
-        const rect = el.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const pct = Math.max(0, Math.min(1, x / rect.width));
-        window.dispatchEvent(new CustomEvent('musicSeek', { detail: { progress: pct * 100 } }));
-    };
-
     return (
         <>
             {/* My Name */}
             <div className="flex flex-col gap-3 tracking-wider mb-3 text-center">
                 <div
                     ref={containerRef}
-                    className="text-6xl xl:text-6xl font-semibold antialiased drop-shadow relative inline-block cursor-pointer select-none"
-                    onClick={handleSeekByClick}
+                    className="text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block"
                 >
-                    {/* Base white text (always visible) */}
-                    <span className="text-white select-none">Adam Eastwood</span>
-
-                    {/* Rainbow overlay clipped to progress width */}
-                    <span
-                        className="absolute inset-0 pointer-events-none overflow-hidden"
-                        style={{ width: `${progress}%` }}
-                    >
-                        <span
-                            className="block"
-                            style={{
-                                background: `linear-gradient(90deg, #ff0000 0%, #ff8000 16.66%, #ffff00 33.33%, #00ff00 50%, #0080ff 66.66%, #8000ff 83.33%, #ff0080 100%)`,
-                                WebkitBackgroundClip: 'text',
-                                WebkitTextFillColor: 'transparent',
-                                backgroundClip: 'text',
-                                whiteSpace: 'nowrap',
-                                transition: 'width 0.1s ease'
-                            }}
-                        >
-                            Adam Eastwood
-                        </span>
-                    </span>
+                    <span className="text-white">Adam Eastwood</span>
                 </div>
 
                 <div 
-                    className={`text-lg text-center text-gray-150 transition-opacity duration-300 ${
+                    className={`lg:text-lg text-center text-gray-150 transition-opacity duration-300 ${
                         isVisible ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
