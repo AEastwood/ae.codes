@@ -1,6 +1,7 @@
 import RunnerGame from '../components/eastereggs/games/runner/Game';
 import FlappyBird from '../components/eastereggs/games/flappybird/Game';
 import TetrisGame from '../components/eastereggs/games/tetris/Game';
+import SpaceInvadersGame from '../components/eastereggs/games/spaceinvaders/Game';
 
 /**
  * Hook to get the list of available games
@@ -25,6 +26,12 @@ export const useGamesList = () => {
             instructions: 'Clear the lines to score points',
             controls: ['Arrow Up - Rotate', 'Arrow Down - Soft Drop', 'Arrow Left - Move Left', 'Arrow Right - Move Right'],
             name: 'Tetris'
+        },
+        {
+            component: SpaceInvadersGame,
+            instructions: 'Defend your position and shoot down incoming invaders before they reach you.',
+            controls: ['Arrow Left / Arrow Right - Move', 'Space - Shoot', 'Escape - Exit'],
+            name: 'Space Invaders'
         }
     ];
 };

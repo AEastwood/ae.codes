@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import { useApi } from '../../../hooks/useApi';
 
 export default function GameOverScreen({ game, score, onSubmit }) {
-    const [submittable, setSubmittable] = useState(false);
     const [playerName, setPlayerName] = useState('');
     const [showNameInput, setShowNameInput] = useState(false);
     const [scoreSubmitted, setScoreSubmitted] = useState(false);
@@ -17,7 +17,7 @@ export default function GameOverScreen({ game, score, onSubmit }) {
     const handleSubmitScore = async () => {
         if (playerName.trim()) {
             try {
-                const result = await submitHighScore(game, playerName, score);
+                await submitHighScore(game, playerName, score);
                 setScoreSubmitted(true);
                 setShowNameInput(false);
             } catch (error) {
@@ -25,11 +25,6 @@ export default function GameOverScreen({ game, score, onSubmit }) {
             }
         }
     };
-
-    {/* Set submittable state */ }
-    useEffect(() => {
-        setSubmittable(score > 0);
-    }, [score]);
 
     return (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-80 rounded-lg">
@@ -88,3 +83,9 @@ export default function GameOverScreen({ game, score, onSubmit }) {
         </div>
     );
 }
+
+GameOverScreen.propTypes = {
+    game: PropTypes.string.isRequired,
+    score: PropTypes.number.isRequired,
+    onSubmit: PropTypes.func.isRequired
+};

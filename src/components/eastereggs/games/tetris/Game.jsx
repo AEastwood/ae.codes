@@ -1,12 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useCdn } from '../../../../hooks/useCdn';
+import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import GameOverScreen from '../GameOverScreen';
 
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
-    const { getUri } = useCdn();
 
     // Game constants
     const BLOCK_SIZE = 30;
@@ -130,8 +129,11 @@ export default function Game({ onExit }) {
         }
 
         if (linesCleared > 0) {
-            setScore(prev => prev + (linesCleared * 100));
-            dropIntervalRef.current = Math.max(100, 1000 - (score * 2));
+            setScore((prev) => {
+                const nextScore = prev + (linesCleared * 100);
+                dropIntervalRef.current = Math.max(100, 1000 - (nextScore * 2));
+                return nextScore;
+            });
         }
     };
 
@@ -291,7 +293,9 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [gameOver, onExit, score]);
+    // This effect intentionally controls the imperative game loop lifecycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameOver, onExit]);
 
     return (
         <div className="relative flex gap-4 flex justify-center items-start bg-zinc-900 rounded-lg">
@@ -317,3 +321,7 @@ export default function Game({ onExit }) {
         </div>
     );
 }
+
+Game.propTypes = {
+    onExit: PropTypes.func.isRequired
+};

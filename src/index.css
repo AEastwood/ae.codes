@@ -33,3 +33,44 @@ svg {
     fill: var(--text-color);
     color: var(--text-color);
 }
+
+@keyframes name-rainbow-shift {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
+
+.name-progress-text {
+    --music-progress: 0%;
+    position: relative;
+    display: inline-block;
+    color: transparent;
+}
+
+.name-progress-text::before {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: white;
+    clip-path: inset(0 0 0 var(--music-progress));
+    pointer-events: none;
+}
+
+.name-progress-text::after {
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: transparent;
+    background-image: linear-gradient(#539D7D, #539D7D);
+    background-size: 100% 100%;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    clip-path: inset(0 calc(100% - var(--music-progress)) 0 0);
+    pointer-events: none;
+}
+

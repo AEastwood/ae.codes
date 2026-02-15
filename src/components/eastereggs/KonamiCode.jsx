@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import PropTypes from 'prop-types';
 import GamesModal from "../modals/GamesModal";
-import MediaPlayer from "./MediaPlayer";
 
 export default function KonamiCode({
     setEasterEggsEnabled,
@@ -43,7 +42,6 @@ export default function KonamiCode({
 
     return (
         <>
-            <MediaPlayer />
             <GamesModal visible={showGamesModal} setShowGamesModal={setShowGamesModal} />
         </>
     );

@@ -55,7 +55,7 @@ export default function GamesModal({ setShowGamesModal, visible }) {
 
 
             ) : (
-                <StartScreen game={game} />
+                <StartScreen game={game} onExit={closeGame} />
             )}
         </Modal>
     );

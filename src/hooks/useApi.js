@@ -1,9 +1,11 @@
+import { useCallback, useMemo } from 'react';
+
 export const useApi = () => {
     // API URL
     const API_URL = import.meta.env.VITE_API_URL || 'https://api.ae.codes';
 
     // Get high scores
-    const getHighScores = async (game) => {
+    const getHighScores = useCallback(async (game) => {
         // Input validation
         if (!game || !game.name || typeof game.name !== 'string') {
             throw new Error('Invalid game parameter: game.name is required and must be a string');
@@ -27,10 +29,10 @@ export const useApi = () => {
             console.error('Error getting high scores:', error);
             throw error;
         }
-    };
+    }, [API_URL]);
 
     // Submit high score
-    const submitHighScore = async (game, name, score) => {
+    const submitHighScore = useCallback(async (game, name, score) => {
         // Input validation
         if (!game || typeof game !== 'string') {
             throw new Error('Invalid game parameter: game is required and must be a string');
@@ -38,7 +40,7 @@ export const useApi = () => {
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             throw new Error('Invalid name parameter: name is required and must be a non-empty string');
         }
-        if (!score || typeof score !== 'number' || score < 0) {
+        if (score == null || typeof score !== 'number' || score < 0) {
             throw new Error('Invalid score parameter: score is required and must be a non-negative number');
         }
 
@@ -65,10 +67,10 @@ export const useApi = () => {
             console.error('Error submitting high score:', error);
             throw error;
         }
-    };
+    }, [API_URL]);
 
-    return {
+    return useMemo(() => ({
         submitHighScore,
         getHighScores
-    };
+    }), [getHighScores, submitHighScore]);
 }; 

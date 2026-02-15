@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import Game from './Game';
 import GameOverScreen from '../GameOverScreen';
 
@@ -33,3 +34,7 @@ function Runner({ playerName }) {
 }
 
 export default Runner; 
+
+Runner.propTypes = {
+    playerName: PropTypes.string
+};

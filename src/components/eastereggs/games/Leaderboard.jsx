@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useApi } from '../../../hooks/useApi';
 
 export default function Leaderboard({ game }) {
@@ -19,7 +20,7 @@ export default function Leaderboard({ game }) {
     };
 
     fetchScores();
-  }, [game.name]);
+  }, [game, getHighScores]);
 
   if (loading) {
     return <div className="p-4">Loading scores...</div>;
@@ -45,3 +46,9 @@ export default function Leaderboard({ game }) {
     </div>
   );
 }
+
+Leaderboard.propTypes = {
+  game: PropTypes.shape({
+    name: PropTypes.string.isRequired
+  }).isRequired
+};

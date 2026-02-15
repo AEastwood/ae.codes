@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useCdn } from '../../../../hooks/useCdn';
 import GameOverScreen from '../GameOverScreen';
 
@@ -33,14 +34,6 @@ export default function Game({ onExit }) {
         jumpVelocityRef.current = 0;
         timeRef.current = 0;
         lastTimeRef.current = 0;
-        
-        // Restart game loop
-        if (gameLoopRef.current) {
-            cancelAnimationFrame(gameLoopRef.current);
-            try {
-                gameLoopRef.current = requestAnimationFrame(gameLoop);
-            } catch (e) {}
-        }
     };
 
     {/* Handle player jump action */}
@@ -186,7 +179,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [gameOver, onExit]);
+    }, [FRAME_TIME, gameOver, getUri, onExit]);
 
     return (
         <div className="relative">
@@ -219,3 +212,7 @@ export default function Game({ onExit }) {
         </div>
     );
 }
+
+Game.propTypes = {
+    onExit: PropTypes.func.isRequired
+};

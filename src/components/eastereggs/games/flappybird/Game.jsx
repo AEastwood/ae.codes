@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 import { useCdn } from '../../../../hooks/useCdn';
 import GameOverScreen from '../GameOverScreen';
 
@@ -36,13 +37,6 @@ export default function Game({ onExit }) {
         pipesRef.current = [];
         velocityRef.current = 0;
         frameCountRef.current = 0;
-    };
-
-    {/* Handle player jump action */ }
-    const handleJump = () => {
-        if (!gameOver) {
-            velocityRef.current = JUMP_FORCE;
-        }
     };
 
     useEffect(() => {
@@ -161,6 +155,12 @@ export default function Game({ onExit }) {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
         {/* Setup event listeners */ }
+        const handleJump = () => {
+            if (!gameOver) {
+                velocityRef.current = JUMP_FORCE;
+            }
+        };
+
         const handleKeyDown = (e) => {
             if (gameOver) return;
             
@@ -187,7 +187,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [gameOver, onExit]);
+    }, [FRAME_TIME, JUMP_FORCE, gameOver, getUri, onExit]);
 
     return (
         <div className="relative">
@@ -206,3 +206,7 @@ export default function Game({ onExit }) {
         </div>
     );
 }
+
+Game.propTypes = {
+    onExit: PropTypes.func.isRequired
+};

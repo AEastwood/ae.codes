@@ -4,6 +4,7 @@ export default function Name() {
     const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
     const [progress, setProgress] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
     const containerRef = useRef(null);
 
     const taglines = [
@@ -58,17 +59,38 @@ export default function Name() {
         return () => clearInterval(interval);
     }, [taglines.length]);
 
-    // Listen for music progress updates from ProfilePicture
     useEffect(() => {
         const handleProgressUpdate = (event) => {
-            if (event.detail && typeof event.detail.progress === 'number') {
-                setProgress(event.detail.progress);
-            }
+            const value = Number(event?.detail?.progress);
+            if (!Number.isFinite(value)) return;
+            setProgress(Math.max(0, Math.min(100, value)));
+        };
+        const handleMusicState = (event) => {
+            setIsPlaying(Boolean(event?.detail?.isPlaying));
         };
 
         window.addEventListener('musicProgress', handleProgressUpdate);
-        return () => window.removeEventListener('musicProgress', handleProgressUpdate);
+        window.addEventListener('musicState', handleMusicState);
+        return () => {
+            window.removeEventListener('musicProgress', handleProgressUpdate);
+            window.removeEventListener('musicState', handleMusicState);
+        };
     }, []);
+
+    const handleSeekClick = (event) => {
+        if (!isPlaying) return;
+        if (!containerRef.current) return;
+
+        const bounds = containerRef.current.getBoundingClientRect();
+        if (bounds.width <= 0) return;
+
+        const clickX = event.clientX - bounds.left;
+        const seekProgress = Math.max(0, Math.min(100, (clickX / bounds.width) * 100));
+
+        window.dispatchEvent(new CustomEvent('musicSeek', {
+            detail: { progress: seekProgress }
+        }));
+    };
 
     return (
         <>
@@ -76,9 +98,19 @@ export default function Name() {
             <div className="flex flex-col gap-3 tracking-wider mb-3 text-center">
                 <div
                     ref={containerRef}
-                    className="text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block"
+                    className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block select-none ${
+                        isPlaying ? 'cursor-pointer' : 'cursor-default'
+                    }`}
+                    onClick={handleSeekClick}
+                    title={isPlaying ? 'Click to seek through the song' : 'Play song to enable seeking'}
                 >
-                    <span className="text-white">Adam Eastwood</span>
+                    <span
+                        className="name-progress-text"
+                        data-text="Adam Eastwood"
+                        style={{ '--music-progress': `${progress}%` }}
+                    >
+                        Adam Eastwood
+                    </span>
                 </div>
 
                 <div 

@@ -5,47 +5,57 @@ import feelGoodInc from '../assets/music/feel-good-inc.mp3';
 export default function ProfilePicture() {
     const { getUri } = useCdn();
     const [isPlaying, setIsPlaying] = useState(false);
-    const [progress, setProgress] = useState(0);
     const audioRef = useRef(null);
 
     useEffect(() => {
         const audio = new Audio(feelGoodInc);
         audioRef.current = audio;
-        
-        audio.addEventListener('timeupdate', () => {
+
+        const handleTimeUpdate = () => {
             if (audio.duration) {
                 const newProgress = (audio.currentTime / audio.duration) * 100;
-                
-                // If progress hits 100%, reset to 0 and stop playing
+                window.dispatchEvent(new CustomEvent('musicProgress', {
+                    detail: { progress: Math.min(100, newProgress) }
+                }));
                 if (newProgress >= 100) {
-                    setProgress(0);
                     setIsPlaying(false);
                     audio.pause();
                     audio.currentTime = 0;
-                    window.dispatchEvent(new CustomEvent('musicProgress', { detail: { progress: 0 } }));
-                } else {
-                    setProgress(newProgress);
-                    window.dispatchEvent(new CustomEvent('musicProgress', { detail: { progress: newProgress } }));
+                    window.dispatchEvent(new CustomEvent('musicProgress', {
+                        detail: { progress: 0 }
+                    }));
                 }
-            }
-        });
-
-        audio.addEventListener('ended', () => {
-            setIsPlaying(false);
-            setProgress(0);
-        });
-
-        const handleSeek = (event) => {
-            const pct = Math.max(0, Math.min(100, event.detail?.progress ?? 0));
-            if (audio.duration) {
-                audio.currentTime = (pct / 100) * audio.duration;
-                setProgress(pct);
             }
         };
 
+        const handleEnded = () => {
+            setIsPlaying(false);
+            window.dispatchEvent(new CustomEvent('musicState', {
+                detail: { isPlaying: false }
+            }));
+            window.dispatchEvent(new CustomEvent('musicProgress', {
+                detail: { progress: 0 }
+            }));
+        };
+
+        const handleSeek = (event) => {
+            const pct = Number(event?.detail?.progress);
+            if (!Number.isFinite(pct) || !audio.duration) return;
+
+            const clampedProgress = Math.max(0, Math.min(100, pct));
+            audio.currentTime = (clampedProgress / 100) * audio.duration;
+            window.dispatchEvent(new CustomEvent('musicProgress', {
+                detail: { progress: clampedProgress }
+            }));
+        };
+
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('ended', handleEnded);
         window.addEventListener('musicSeek', handleSeek);
 
         return () => {
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('ended', handleEnded);
             window.removeEventListener('musicSeek', handleSeek);
             if (audioRef.current) {
                 audioRef.current.pause();
@@ -59,9 +69,24 @@ export default function ProfilePicture() {
             if (isPlaying) {
                 audioRef.current.pause();
                 setIsPlaying(false);
+                window.dispatchEvent(new CustomEvent('musicState', {
+                    detail: { isPlaying: false }
+                }));
             } else {
-                audioRef.current.play();
-                setIsPlaying(true);
+                audioRef.current.play()
+                    .then(() => {
+                        setIsPlaying(true);
+                        window.dispatchEvent(new CustomEvent('musicState', {
+                            detail: { isPlaying: true }
+                        }));
+                    })
+                    .catch((error) => {
+                        console.error('Unable to start audio playback:', error);
+                        setIsPlaying(false);
+                        window.dispatchEvent(new CustomEvent('musicState', {
+                            detail: { isPlaying: false }
+                        }));
+                    });
             }
         }
     };

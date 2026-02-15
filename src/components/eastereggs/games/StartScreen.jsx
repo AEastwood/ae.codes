@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import PropTypes from 'prop-types';
 import Leaderboard from './Leaderboard';
 
-export default function StartScreen({ game }) {
+export default function StartScreen({ game, onExit }) {
   const [startedGame, setStartedGame] = useState(false);
   const { name: gameName, instructions } = game;
 
@@ -36,8 +37,18 @@ export default function StartScreen({ game }) {
           <Leaderboard game={game} />
         </div>
       ) : (
-        <game.component />
+        <game.component onExit={onExit} />
       )}
     </div>
   );
 }
+
+StartScreen.propTypes = {
+  game: PropTypes.shape({
+    component: PropTypes.elementType.isRequired,
+    controls: PropTypes.arrayOf(PropTypes.string).isRequired,
+    instructions: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired
+  }).isRequired,
+  onExit: PropTypes.func.isRequired
+};
