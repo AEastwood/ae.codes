@@ -11,21 +11,35 @@ export default function ProfilePicture() {
         const audio = new Audio(feelGoodInc);
         audioRef.current = audio;
 
+        const dispatchProgress = (currentTime, duration) => {
+            const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+            const safeCurrentTime = Number.isFinite(currentTime) ? currentTime : 0;
+            const progress = safeDuration > 0 ? Math.min(100, (safeCurrentTime / safeDuration) * 100) : 0;
+
+            window.dispatchEvent(new CustomEvent('musicProgress', {
+                detail: {
+                    progress,
+                    currentTime: safeCurrentTime,
+                    duration: safeDuration
+                }
+            }));
+        };
+
         const handleTimeUpdate = () => {
             if (audio.duration) {
                 const newProgress = (audio.currentTime / audio.duration) * 100;
-                window.dispatchEvent(new CustomEvent('musicProgress', {
-                    detail: { progress: Math.min(100, newProgress) }
-                }));
+                dispatchProgress(audio.currentTime, audio.duration);
                 if (newProgress >= 100) {
                     setIsPlaying(false);
                     audio.pause();
                     audio.currentTime = 0;
-                    window.dispatchEvent(new CustomEvent('musicProgress', {
-                        detail: { progress: 0 }
-                    }));
+                    dispatchProgress(0, audio.duration);
                 }
             }
+        };
+
+        const handleLoadedMetadata = () => {
+            dispatchProgress(audio.currentTime, audio.duration);
         };
 
         const handleEnded = () => {
@@ -33,9 +47,7 @@ export default function ProfilePicture() {
             window.dispatchEvent(new CustomEvent('musicState', {
                 detail: { isPlaying: false }
             }));
-            window.dispatchEvent(new CustomEvent('musicProgress', {
-                detail: { progress: 0 }
-            }));
+            dispatchProgress(0, audio.duration);
         };
 
         const handleSeek = (event) => {
@@ -44,17 +56,17 @@ export default function ProfilePicture() {
 
             const clampedProgress = Math.max(0, Math.min(100, pct));
             audio.currentTime = (clampedProgress / 100) * audio.duration;
-            window.dispatchEvent(new CustomEvent('musicProgress', {
-                detail: { progress: clampedProgress }
-            }));
+            dispatchProgress(audio.currentTime, audio.duration);
         };
 
         audio.addEventListener('timeupdate', handleTimeUpdate);
+        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
         audio.addEventListener('ended', handleEnded);
         window.addEventListener('musicSeek', handleSeek);
 
         return () => {
             audio.removeEventListener('timeupdate', handleTimeUpdate);
+            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
             audio.removeEventListener('ended', handleEnded);
             window.removeEventListener('musicSeek', handleSeek);
             if (audioRef.current) {

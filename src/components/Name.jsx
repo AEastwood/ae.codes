@@ -5,6 +5,8 @@ export default function Name() {
     const [isVisible, setIsVisible] = useState(true);
     const [progress, setProgress] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [duration, setDuration] = useState(0);
+    const [hoverProgress, setHoverProgress] = useState(null);
     const containerRef = useRef(null);
 
     const taglines = [
@@ -64,6 +66,11 @@ export default function Name() {
             const value = Number(event?.detail?.progress);
             if (!Number.isFinite(value)) return;
             setProgress(Math.max(0, Math.min(100, value)));
+
+            const nextDuration = Number(event?.detail?.duration);
+            if (Number.isFinite(nextDuration)) {
+                setDuration(Math.max(0, nextDuration));
+            }
         };
         const handleMusicState = (event) => {
             setIsPlaying(Boolean(event?.detail?.isPlaying));
@@ -77,20 +84,47 @@ export default function Name() {
         };
     }, []);
 
-    const handleSeekClick = (event) => {
-        if (!isPlaying) return;
+    const formatTimestamp = (seconds) => {
+        if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+
+        const wholeSeconds = Math.floor(seconds);
+        const minutes = Math.floor(wholeSeconds / 60);
+        const remainingSeconds = wholeSeconds % 60;
+
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
+    const getProgressFromClientX = (clientX) => {
         if (!containerRef.current) return;
 
         const bounds = containerRef.current.getBoundingClientRect();
-        if (bounds.width <= 0) return;
+        if (bounds.width <= 0) return null;
 
-        const clickX = event.clientX - bounds.left;
-        const seekProgress = Math.max(0, Math.min(100, (clickX / bounds.width) * 100));
+        const offsetX = clientX - bounds.left;
+        return Math.max(0, Math.min(100, (offsetX / bounds.width) * 100));
+    };
 
+    const handleNameMouseMove = (event) => {
+        const nextProgress = getProgressFromClientX(event.clientX);
+        if (nextProgress == null) return;
+        setHoverProgress(nextProgress);
+    };
+
+    const handleNameMouseLeave = () => {
+        setHoverProgress(null);
+    };
+
+    const handleSeekClick = (event) => {
+        if (!isPlaying) return;
+        const seekProgress = getProgressFromClientX(event.clientX);
+        if (seekProgress == null) return;
         window.dispatchEvent(new CustomEvent('musicSeek', {
             detail: { progress: seekProgress }
         }));
     };
+
+    const seekPreviewProgress = hoverProgress ?? progress;
+    const seekPreviewTime = (seekPreviewProgress / 100) * duration;
 
     return (
         <>
@@ -101,8 +135,10 @@ export default function Name() {
                     className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block select-none ${
                         isPlaying ? 'cursor-pointer' : 'cursor-default'
                     }`}
+                    onMouseMove={handleNameMouseMove}
+                    onMouseLeave={handleNameMouseLeave}
                     onClick={handleSeekClick}
-                    title={isPlaying ? 'Click to seek through the song' : 'Play song to enable seeking'}
+                    title={`${formatTimestamp(seekPreviewTime)} / ${formatTimestamp(duration)}`}
                 >
                     <span
                         className="name-progress-text"
