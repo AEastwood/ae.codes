@@ -1,15 +1,15 @@
 import { useState, useRef, useEffect } from "react";
 import { useCdn } from '../hooks/useCdn';
-import feelGoodInc from '../assets/music/feel-good-inc.mp3';
 
 export default function ProfilePicture() {
     const { getUri } = useCdn();
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
     const pausedImageSrc = getUri('images/me.jpeg');
+    const trackSrc = getUri('audio/feel-good-inc.mp3');
 
     useEffect(() => {
-        const audio = new Audio(feelGoodInc);
+        const audio = new Audio(trackSrc);
         audioRef.current = audio;
 
         const dispatchProgress = (currentTime, duration) => {
@@ -75,7 +75,7 @@ export default function ProfilePicture() {
                 audioRef.current = null;
             }
         };
-    }, []);
+    }, [trackSrc]);
 
     const togglePlayPause = () => {
         if (audioRef.current) {
