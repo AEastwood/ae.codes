@@ -6,6 +6,7 @@ export default function ProfilePicture() {
     const { getUri } = useCdn();
     const [isPlaying, setIsPlaying] = useState(false);
     const audioRef = useRef(null);
+    const pausedImageSrc = getUri('images/me.jpeg');
 
     useEffect(() => {
         const audio = new Audio(feelGoodInc);
@@ -127,12 +128,25 @@ export default function ProfilePicture() {
                     </button>
                 </div>
 
-                <img
-                    className="mx-auto relative z-20 profile-picture rounded-md w-48 mb-2 transition duration-250 hover:shadow-xl hover:cursor-pointer"
-                    src={getUri('images/me-gorillaz.png')}
-                    alt="Adam Eastwood"
+                <div
+                    className="mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer"
                     onClick={togglePlayPause}
-                />
+                >
+                    <img
+                        className={`profile-picture block w-full h-auto transition-opacity duration-500 ease-in-out ${
+                            isPlaying ? 'opacity-0' : 'opacity-100'
+                        }`}
+                        src={pausedImageSrc}
+                        alt="Adam Eastwood"
+                    />
+                    <img
+                        className={`profile-picture absolute inset-0 block w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+                            isPlaying ? 'opacity-100' : 'opacity-0'
+                        }`}
+                        src={getUri('images/me-gorillaz.png')}
+                        alt="Adam Eastwood Gorillaz"
+                    />
+                </div>
             </div>
         </div>
     )

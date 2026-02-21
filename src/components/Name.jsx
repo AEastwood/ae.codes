@@ -1,12 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 
 export default function Name() {
     const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
     const [progress, setProgress] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
     const [duration, setDuration] = useState(0);
     const [hoverProgress, setHoverProgress] = useState(null);
+    const [isDraggingSeek, setIsDraggingSeek] = useState(false);
     const containerRef = useRef(null);
 
     const taglines = [
@@ -72,15 +72,9 @@ export default function Name() {
                 setDuration(Math.max(0, nextDuration));
             }
         };
-        const handleMusicState = (event) => {
-            setIsPlaying(Boolean(event?.detail?.isPlaying));
-        };
-
         window.addEventListener('musicProgress', handleProgressUpdate);
-        window.addEventListener('musicState', handleMusicState);
         return () => {
             window.removeEventListener('musicProgress', handleProgressUpdate);
-            window.removeEventListener('musicState', handleMusicState);
         };
     }, []);
 
@@ -94,7 +88,7 @@ export default function Name() {
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
-    const getProgressFromClientX = (clientX) => {
+    const getProgressFromClientX = useCallback((clientX) => {
         if (!containerRef.current) return;
 
         const bounds = containerRef.current.getBoundingClientRect();
@@ -102,7 +96,7 @@ export default function Name() {
 
         const offsetX = clientX - bounds.left;
         return Math.max(0, Math.min(100, (offsetX / bounds.width) * 100));
-    };
+    }, []);
 
     const handleNameMouseMove = (event) => {
         const nextProgress = getProgressFromClientX(event.clientX);
@@ -111,18 +105,49 @@ export default function Name() {
     };
 
     const handleNameMouseLeave = () => {
+        if (isDraggingSeek) return;
         setHoverProgress(null);
     };
 
-    const handleSeekClick = (event) => {
-        if (!isPlaying) return;
-        const seekProgress = getProgressFromClientX(event.clientX);
+    const seekToClientX = useCallback((clientX) => {
+        if (duration <= 0) return;
+        const seekProgress = getProgressFromClientX(clientX);
         if (seekProgress == null) return;
+        setHoverProgress(seekProgress);
         window.dispatchEvent(new CustomEvent('musicSeek', {
             detail: { progress: seekProgress }
         }));
+    }, [duration, getProgressFromClientX]);
+
+    const handleSeekMouseDown = (event) => {
+        if (duration <= 0) return;
+        event.preventDefault();
+        setIsDraggingSeek(true);
+        seekToClientX(event.clientX);
     };
 
+    useEffect(() => {
+        if (!isDraggingSeek) return;
+
+        const handleMouseMove = (event) => {
+            seekToClientX(event.clientX);
+        };
+
+        const handleMouseUp = (event) => {
+            seekToClientX(event.clientX);
+            setIsDraggingSeek(false);
+        };
+
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDraggingSeek, seekToClientX]);
+
+    const canSeek = duration > 0;
     const seekPreviewProgress = hoverProgress ?? progress;
     const seekPreviewTime = (seekPreviewProgress / 100) * duration;
 
@@ -133,20 +158,30 @@ export default function Name() {
                 <div
                     ref={containerRef}
                     className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block select-none ${
-                        isPlaying ? 'cursor-pointer' : 'cursor-default'
+                        canSeek ? 'cursor-pointer' : 'cursor-default'
                     }`}
                     onMouseMove={handleNameMouseMove}
                     onMouseLeave={handleNameMouseLeave}
-                    onClick={handleSeekClick}
-                    title={`${formatTimestamp(seekPreviewTime)} / ${formatTimestamp(duration)}`}
+                    onMouseDown={handleSeekMouseDown}
                 >
                     <span
-                        className="name-progress-text"
+                        className="name-progress-text relative"
                         data-text="Adam Eastwood"
                         style={{ '--music-progress': `${progress}%` }}
                     >
                         Adam Eastwood
                     </span>
+                    {hoverProgress != null && canSeek ? (
+                        <>
+                            <div
+                                className="absolute z-[9999] -top-9 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-xs whitespace-nowrap pointer-events-none"
+                                style={{ left: `${hoverProgress}%` }}
+                                aria-hidden="true"
+                            >
+                                {formatTimestamp(seekPreviewTime)} / {formatTimestamp(duration)}
+                            </div>
+                        </>
+                    ) : null}
                 </div>
 
                 <div 

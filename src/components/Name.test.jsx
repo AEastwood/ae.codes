@@ -24,36 +24,40 @@ function setupName() {
 }
 
 describe('Name seek behavior', () => {
-    it('does not dispatch seek when playback is not active', () => {
+    it('does not dispatch seek when track duration is unavailable', () => {
         const clickableName = setupName();
         const seekHandler = vi.fn();
 
         window.addEventListener('musicSeek', seekHandler);
-        fireEvent.click(clickableName, { clientX: 100 });
+        fireEvent.mouseDown(clickableName, { clientX: 100 });
         window.removeEventListener('musicSeek', seekHandler);
 
         expect(seekHandler).not.toHaveBeenCalled();
     });
 
-    it('dispatches seek progress only when playing', () => {
+    it('dispatches seek progress when duration is known', () => {
         const clickableName = setupName();
         const seekHandler = vi.fn();
 
-        window.addEventListener('musicSeek', seekHandler);
         act(() => {
-            window.dispatchEvent(new CustomEvent('musicState', {
-                detail: { isPlaying: true }
+            window.dispatchEvent(new CustomEvent('musicProgress', {
+                detail: {
+                    progress: 25,
+                    currentTime: 50,
+                    duration: 200
+                }
             }));
         });
 
-        fireEvent.click(clickableName, { clientX: 100 });
+        window.addEventListener('musicSeek', seekHandler);
+        fireEvent.mouseDown(clickableName, { clientX: 100 });
         window.removeEventListener('musicSeek', seekHandler);
 
         expect(seekHandler).toHaveBeenCalledTimes(1);
         expect(seekHandler.mock.calls[0][0].detail.progress).toBe(50);
     });
 
-    it('shows hover seek target timestamp in title', () => {
+    it('shows hover seek target timestamp in tooltip', () => {
         const clickableName = setupName();
 
         act(() => {
@@ -64,17 +68,12 @@ describe('Name seek behavior', () => {
                     duration: 200
                 }
             }));
-            window.dispatchEvent(new CustomEvent('musicState', {
-                detail: { isPlaying: true }
-            }));
         });
 
-        expect(clickableName).toHaveAttribute('title', '0:50 / 3:20');
-
         fireEvent.mouseMove(clickableName, { clientX: 150 });
-        expect(clickableName).toHaveAttribute('title', '2:30 / 3:20');
+        expect(screen.getByText('2:30 / 3:20')).toBeInTheDocument();
 
         fireEvent.mouseLeave(clickableName);
-        expect(clickableName).toHaveAttribute('title', '0:50 / 3:20');
+        expect(screen.queryByText('2:30 / 3:20')).not.toBeInTheDocument();
     });
 });
