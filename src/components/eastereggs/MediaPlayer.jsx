@@ -11,7 +11,7 @@ export default function MediaPlayer({ visible = false }) {
                 </svg>
             </div>
             <div className="min-w-[180px]">
-                <div className="font-medium text-sm text-[#fff]">Halo 3</div>
+                <div className="font-medium text-sm text-[#fff]">Feel Good Inc.</div>
             </div>
         </div>
     );
