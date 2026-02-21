@@ -1,57 +1,84 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import feelGoodIncLyrics from '../assets/music/feel-good-inc.lrc?raw';
+
+function parseLrc(content) {
+    return content
+        .split('\n')
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .flatMap((line) => {
+            const match = line.match(/^\[(\d{2}):(\d{2}(?:\.\d{1,2})?)\](.*)$/);
+            if (!match) return [];
+
+            const minutes = Number(match[1]);
+            const seconds = Number(match[2]);
+            const text = match[3].trim();
+            if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || !text) return [];
+
+            return [{ text, time: (minutes * 60) + seconds }];
+        })
+        .sort((a, b) => a.time - b.time);
+}
+
+const lyricsTimeline = parseLrc(feelGoodIncLyrics);
+const taglines = [
+    "Building digital empires one commit at a time.",
+    "Architecting tomorrow's solutions today.",
+    "Debugging the universe, one bug at a time.",
+    "Crafting elegant solutions to complex problems.",
+    "Transforming ideas into reality through technology.",
+    "Mastering the art of the impossible.",
+    "Building bridges between humans and machines.",
+    "Creating order from digital chaos.",
+    "Solving puzzles that don't exist yet.",
+    "Building systems that scale beyond imagination.",
+    "Turning complexity into simplicity.",
+    "Creating tools that empower humanity.",
+    "Building the infrastructure of tomorrow.",
+    "Creating digital experiences that matter.",
+    "Building solutions that last generations.",
+    "Turning vision into executable reality.",
+    "Creating technology that serves people.",
+    "Building platforms that connect the world.",
+    "Transforming challenges into opportunities.",
+    "Creating systems that think for themselves.",
+    "Building tools that make life better.",
+    "Transforming ideas into market reality.",
+    "Creating technology that adapts and learns.",
+    "Building solutions that scale globally.",
+    "Creating platforms that empower creators.",
+    "Building systems that never sleep.",
+    "Transforming data into actionable insights.",
+    "Creating technology that thinks ahead.",
+    "Building solutions that solve tomorrow's problems.",
+    "Transforming complexity into clarity.",
+    "Creating technology that works for everyone.",
+    "Building platforms that change lives.",
+    "Transforming ideas into digital gold.",
+    "Creating systems that scale infinitely.",
+    "Building tools that transform industries.",
+    "Transforming challenges into victories."
+];
 
 export default function Name() {
     const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
+    const [isPlaying, setIsPlaying] = useState(false);
     const [progress, setProgress] = useState(0);
+    const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [hoverProgress, setHoverProgress] = useState(null);
     const [isDraggingSeek, setIsDraggingSeek] = useState(false);
     const containerRef = useRef(null);
 
-    const taglines = [
-        "Building digital empires one commit at a time.",
-        "Architecting tomorrow's solutions today.",
-        "Debugging the universe, one bug at a time.",
-        "Crafting elegant solutions to complex problems.",
-        "Transforming ideas into reality through technology.",
-        "Mastering the art of the impossible.",
-        "Building bridges between humans and machines.",
-        "Creating order from digital chaos.",
-        "Solving puzzles that don't exist yet.",
-        "Building systems that scale beyond imagination.",
-        "Turning complexity into simplicity.",
-        "Creating tools that empower humanity.",
-        "Building the infrastructure of tomorrow.",
-        "Creating digital experiences that matter.",
-        "Building solutions that last generations.",
-        "Turning vision into executable reality.",
-        "Creating technology that serves people.",
-        "Building platforms that connect the world.",
-        "Transforming challenges into opportunities.",
-        "Creating systems that think for themselves.",
-        "Building tools that make life better.",
-        "Transforming ideas into market reality.",
-        "Creating technology that adapts and learns.",
-        "Building solutions that scale globally.",
-        "Creating platforms that empower creators.",
-        "Building systems that never sleep.",
-        "Transforming data into actionable insights.",
-        "Creating technology that thinks ahead.",
-        "Building solutions that solve tomorrow's problems.",
-        "Transforming complexity into clarity.",
-        "Creating technology that works for everyone.",
-        "Building platforms that change lives.",
-        "Transforming ideas into digital gold.",
-        "Creating systems that scale infinitely.",
-        "Building tools that transform industries.",
-        "Transforming challenges into victories."
-    ];
-
     useEffect(() => {
+        if (isPlaying) {
+            setIsVisible(true);
+            return;
+        }
+
         const interval = setInterval(() => {
             setIsVisible(false);
-            
             setTimeout(() => {
                 setCurrentTaglineIndex(Math.floor(Math.random() * taglines.length));
                 setIsVisible(true);
@@ -59,7 +86,7 @@ export default function Name() {
         }, 3000);
 
         return () => clearInterval(interval);
-    }, [taglines.length]);
+    }, [isPlaying]);
 
     useEffect(() => {
         const handleProgressUpdate = (event) => {
@@ -71,10 +98,20 @@ export default function Name() {
             if (Number.isFinite(nextDuration)) {
                 setDuration(Math.max(0, nextDuration));
             }
+
+            const nextCurrentTime = Number(event?.detail?.currentTime);
+            if (Number.isFinite(nextCurrentTime)) {
+                setCurrentTime(Math.max(0, nextCurrentTime));
+            }
+        };
+        const handleMusicState = (event) => {
+            setIsPlaying(Boolean(event?.detail?.isPlaying));
         };
         window.addEventListener('musicProgress', handleProgressUpdate);
+        window.addEventListener('musicState', handleMusicState);
         return () => {
             window.removeEventListener('musicProgress', handleProgressUpdate);
+            window.removeEventListener('musicState', handleMusicState);
         };
     }, []);
 
@@ -150,6 +187,18 @@ export default function Name() {
     const canSeek = duration > 0;
     const seekPreviewProgress = hoverProgress ?? progress;
     const seekPreviewTime = (seekPreviewProgress / 100) * duration;
+    const currentLyric = useMemo(() => {
+        let activeLyric = '';
+        for (const lyric of lyricsTimeline) {
+            if (currentTime >= lyric.time) {
+                activeLyric = lyric.text;
+                continue;
+            }
+            break;
+        }
+        return activeLyric;
+    }, [currentTime]);
+    const displayedSubtitle = isPlaying ? currentLyric : taglines[currentTaglineIndex];
 
     return (
         <>
@@ -184,12 +233,12 @@ export default function Name() {
                     ) : null}
                 </div>
 
-                <div 
-                    className={`lg:text-lg text-center text-gray-150 transition-opacity duration-300 ${
+                <div
+                    className={`lg:text-lg text-center text-gray-150 min-h-7 transition-opacity duration-300 ${
                         isVisible ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
-                    {taglines[currentTaglineIndex]}
+                    {displayedSubtitle}
                 </div>
             </div>
         </>
