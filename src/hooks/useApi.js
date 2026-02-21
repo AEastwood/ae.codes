@@ -33,9 +33,11 @@ export const useApi = () => {
 
     // Submit high score
     const submitHighScore = useCallback(async (game, name, score) => {
+        const normalizedGame = typeof game === 'string' ? game : game?.name;
+
         // Input validation
-        if (!game || typeof game !== 'string') {
-            throw new Error('Invalid game parameter: game is required and must be a string');
+        if (!normalizedGame || typeof normalizedGame !== 'string') {
+            throw new Error('Invalid game parameter: game name is required and must be a string');
         }
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             throw new Error('Invalid name parameter: name is required and must be a non-empty string');
@@ -51,7 +53,7 @@ export const useApi = () => {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    game: game.toLowerCase(),
+                    game: normalizedGame.toLowerCase(),
                     name: name.trim(),
                     score: score,
                     timestamp: new Date().toISOString()

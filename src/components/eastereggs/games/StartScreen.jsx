@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import Leaderboard from './Leaderboard';
+import GameErrorBoundary from './GameErrorBoundary';
 
 export default function StartScreen({ game, onExit }) {
   const [startedGame, setStartedGame] = useState(false);
@@ -37,7 +38,9 @@ export default function StartScreen({ game, onExit }) {
           <Leaderboard game={game} />
         </div>
       ) : (
-        <game.component onExit={onExit} />
+        <GameErrorBoundary>
+          <game.component onExit={onExit} />
+        </GameErrorBoundary>
       )}
     </div>
   );

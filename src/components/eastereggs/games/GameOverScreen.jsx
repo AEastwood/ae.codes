@@ -85,7 +85,9 @@ export default function GameOverScreen({ game, score, onSubmit }) {
 }
 
 GameOverScreen.propTypes = {
-    game: PropTypes.string.isRequired,
+    game: PropTypes.shape({
+        name: PropTypes.string.isRequired
+    }).isRequired,
     score: PropTypes.number.isRequired,
     onSubmit: PropTypes.func.isRequired
 };

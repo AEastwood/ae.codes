@@ -1,87 +1,42 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { act } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import ProfilePicture from './ProfilePicture';
 
 vi.mock('../hooks/useCdn', () => ({
     useCdn: () => ({
-        getUri: () => 'https://cdn.example.com/images/me-gorillaz.png'
+        getUri: (path) => `https://cdn.example.com/${path}`
     })
 }));
 
-class MockAudio {
-    static instances = [];
+const mockMusicPlayer = {
+    isPlaying: false,
+    togglePlayPause: vi.fn()
+};
 
-    constructor() {
-        this.currentTime = 0;
-        this.duration = 120;
-        this.listeners = {};
-        this.play = vi.fn(() => Promise.resolve());
-        this.pause = vi.fn();
-        MockAudio.instances.push(this);
-    }
-
-    addEventListener(type, callback) {
-        this.listeners[type] = callback;
-    }
-
-    removeEventListener(type) {
-        delete this.listeners[type];
-    }
-
-    emit(type) {
-        if (this.listeners[type]) {
-            this.listeners[type]();
-        }
-    }
-}
+vi.mock('../hooks/useMusicPlayer', () => ({
+    useMusicPlayer: () => mockMusicPlayer
+}));
 
 describe('ProfilePicture', () => {
-    afterEach(() => {
-        MockAudio.instances = [];
-        vi.unstubAllGlobals();
-    });
-
-    it('dispatches play state when play button is clicked', async () => {
-        vi.stubGlobal('Audio', MockAudio);
-        const musicStateHandler = vi.fn();
-        window.addEventListener('musicState', musicStateHandler);
-
+    it('toggles playback when play button is clicked', () => {
+        mockMusicPlayer.isPlaying = false;
+        mockMusicPlayer.togglePlayPause.mockClear();
         render(<ProfilePicture />);
+
         const playButton = screen.getByRole('button', { name: /play/i });
-        await act(async () => {
-            fireEvent.click(playButton);
-            await Promise.resolve();
-        });
-
-        window.removeEventListener('musicState', musicStateHandler);
-
-        expect(musicStateHandler).toHaveBeenCalledWith(
-            expect.objectContaining({
-                detail: { isPlaying: true }
-            })
-        );
+        fireEvent.click(playButton);
+        expect(mockMusicPlayer.togglePlayPause).toHaveBeenCalledTimes(1);
     });
 
-    it('responds to musicSeek and dispatches updated progress', () => {
-        vi.stubGlobal('Audio', MockAudio);
-        const progressHandler = vi.fn();
-        window.addEventListener('musicProgress', progressHandler);
-
+    it('shows gorillaz image overlay only when playing', () => {
+        mockMusicPlayer.isPlaying = true;
         render(<ProfilePicture />);
-        const audio = MockAudio.instances[0];
-        window.dispatchEvent(new CustomEvent('musicSeek', {
-            detail: { progress: 50 }
-        }));
-        window.removeEventListener('musicProgress', progressHandler);
 
-        expect(audio.currentTime).toBe(60);
-        expect(progressHandler).toHaveBeenCalledWith(
-            expect.objectContaining({
-                detail: expect.objectContaining({
-                    progress: 50
-                })
-            })
-        );
+        const pausedImage = screen.getByAltText('Adam Eastwood');
+        const gorillazImage = screen.getByAltText('Adam Eastwood Gorillaz');
+
+        expect(pausedImage).toHaveAttribute('src', 'https://cdn.example.com/images/me.jpeg');
+        expect(gorillazImage).toHaveClass('opacity-100');
+        expect(gorillazImage).toHaveClass('visible');
     });
 });

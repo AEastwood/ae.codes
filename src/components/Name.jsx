@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import feelGoodIncLyrics from '../assets/music/feel-good-inc.lrc?raw';
+import { useMusicPlayer } from '../hooks/useMusicPlayer';
 
 function parseLrc(content) {
     return content
@@ -63,13 +64,10 @@ const taglines = [
 export default function Name() {
     const [currentTaglineIndex, setCurrentTaglineIndex] = useState(0);
     const [isVisible, setIsVisible] = useState(true);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [currentTime, setCurrentTime] = useState(0);
-    const [duration, setDuration] = useState(0);
     const [hoverProgress, setHoverProgress] = useState(null);
     const [isDraggingSeek, setIsDraggingSeek] = useState(false);
     const containerRef = useRef(null);
+    const { currentTime, duration, isPlaying, progress, seekByProgress } = useMusicPlayer();
 
     useEffect(() => {
         if (isPlaying) {
@@ -87,33 +85,6 @@ export default function Name() {
 
         return () => clearInterval(interval);
     }, [isPlaying]);
-
-    useEffect(() => {
-        const handleProgressUpdate = (event) => {
-            const value = Number(event?.detail?.progress);
-            if (!Number.isFinite(value)) return;
-            setProgress(Math.max(0, Math.min(100, value)));
-
-            const nextDuration = Number(event?.detail?.duration);
-            if (Number.isFinite(nextDuration)) {
-                setDuration(Math.max(0, nextDuration));
-            }
-
-            const nextCurrentTime = Number(event?.detail?.currentTime);
-            if (Number.isFinite(nextCurrentTime)) {
-                setCurrentTime(Math.max(0, nextCurrentTime));
-            }
-        };
-        const handleMusicState = (event) => {
-            setIsPlaying(Boolean(event?.detail?.isPlaying));
-        };
-        window.addEventListener('musicProgress', handleProgressUpdate);
-        window.addEventListener('musicState', handleMusicState);
-        return () => {
-            window.removeEventListener('musicProgress', handleProgressUpdate);
-            window.removeEventListener('musicState', handleMusicState);
-        };
-    }, []);
 
     const formatTimestamp = (seconds) => {
         if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
@@ -151,10 +122,8 @@ export default function Name() {
         const seekProgress = getProgressFromClientX(clientX);
         if (seekProgress == null) return;
         setHoverProgress(seekProgress);
-        window.dispatchEvent(new CustomEvent('musicSeek', {
-            detail: { progress: seekProgress }
-        }));
-    }, [duration, getProgressFromClientX]);
+        seekByProgress(seekProgress);
+    }, [duration, getProgressFromClientX, seekByProgress]);
 
     const handleSeekMouseDown = (event) => {
         if (duration <= 0) return;

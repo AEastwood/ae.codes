@@ -10,7 +10,6 @@ function Icon({ name, icon }) {
             className="hover:scale-[1.3] transition rounded"
             src={getUri(icon)}
             alt={`${name} icon`}
-            title={name}
         />
     )
 }

@@ -11,7 +11,7 @@ vi.mock('../../../hooks/useApi', () => ({
 describe('GameOverScreen', () => {
     it('allows replay action', () => {
         const onSubmit = vi.fn();
-        render(<GameOverScreen game="Runner" score={10} onSubmit={onSubmit} />);
+        render(<GameOverScreen game={{ name: 'Runner' }} score={10} onSubmit={onSubmit} />);
 
         fireEvent.click(screen.getByText('Play Again'));
         expect(onSubmit).toHaveBeenCalledTimes(1);
@@ -19,7 +19,7 @@ describe('GameOverScreen', () => {
 
     it('submits score with player name', async () => {
         submitHighScore.mockResolvedValueOnce({ ok: true });
-        render(<GameOverScreen game="Runner" score={10} onSubmit={vi.fn()} />);
+        render(<GameOverScreen game={{ name: 'Runner' }} score={10} onSubmit={vi.fn()} />);
 
         fireEvent.click(screen.getByText('Submit Score'));
         fireEvent.change(screen.getByPlaceholderText('Enter your name'), {
@@ -28,7 +28,7 @@ describe('GameOverScreen', () => {
         fireEvent.click(screen.getByText('Submit'));
 
         await waitFor(() => {
-            expect(submitHighScore).toHaveBeenCalledWith('Runner', 'Adam', 10);
+            expect(submitHighScore).toHaveBeenCalledWith({ name: 'Runner' }, 'Adam', 10);
             expect(screen.getByText('Score Submitted!')).toBeInTheDocument();
         });
     });

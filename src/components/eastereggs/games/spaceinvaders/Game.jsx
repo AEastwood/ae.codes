@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import GameOverScreen from '../GameOverScreen';
+import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 
 const CANVAS_WIDTH = 750;
 const CANVAS_HEIGHT = 600;
@@ -56,6 +57,7 @@ export default function Game({ onExit }) {
     const scoreRef = useRef(0);
     const [score, setScore] = useState(0);
     const [gameOver, setGameOver] = useState(false);
+    useEscapeKey(onExit);
 
     const playerRef = useRef({
         x: (CANVAS_WIDTH - PLAYER_WIDTH) / 2,
@@ -275,7 +277,6 @@ export default function Game({ onExit }) {
                 event.preventDefault();
                 keysRef.current.shoot = true;
             }
-            if (event.code === 'Escape') onExit();
         };
 
         const handleKeyUp = (event) => {
@@ -294,7 +295,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [gameOver, onExit]);
+    }, [gameOver]);
 
     return (
         <div className="relative">
@@ -307,7 +308,7 @@ export default function Game({ onExit }) {
             <div className="absolute top-4 right-4 text-white font-mono text-2xl">
                 {score}
             </div>
-            {gameOver && <GameOverScreen game="Space Invaders" score={score} onSubmit={resetGame} />}
+            {gameOver && <GameOverScreen game={{ name: 'Space Invaders' }} score={score} onSubmit={resetGame} />}
         </div>
     );
 }

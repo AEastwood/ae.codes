@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useCdn } from '../../../../hooks/useCdn';
+import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 import GameOverScreen from '../GameOverScreen';
 
 export default function Game({ onExit }) {
@@ -9,6 +10,7 @@ export default function Game({ onExit }) {
     const [score, setScore] = useState(0);
     const playerSpriteRef = useRef(null);
     const { getUri } = useCdn();
+    useEscapeKey(onExit);
 
     {/* Game constants */ }
     const FPS = 60;
@@ -171,9 +173,6 @@ export default function Game({ onExit }) {
                     handleJump();
                 }
             }
-            if (e.code === 'Escape') {
-                onExit();
-            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -187,7 +186,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [FRAME_TIME, JUMP_FORCE, gameOver, getUri, onExit]);
+    }, [FRAME_TIME, JUMP_FORCE, gameOver, getUri]);
 
     return (
         <div className="relative">
@@ -202,7 +201,7 @@ export default function Game({ onExit }) {
                 {score}
             </div>
             {/* Game over overlay */}
-            {gameOver && <GameOverScreen game='Flappy Bird' score={score} onSubmit={resetGame} />}
+            {gameOver && <GameOverScreen game={{ name: 'Flappy Bird' }} score={score} onSubmit={resetGame} />}
         </div>
     );
 }

@@ -1,108 +1,10 @@
-import { useState, useRef, useEffect } from "react";
 import { useCdn } from '../hooks/useCdn';
+import { useMusicPlayer } from '../hooks/useMusicPlayer';
 
 export default function ProfilePicture() {
     const { getUri } = useCdn();
-    const [isPlaying, setIsPlaying] = useState(false);
-    const audioRef = useRef(null);
+    const { isPlaying, togglePlayPause } = useMusicPlayer();
     const pausedImageSrc = getUri('images/me.jpeg');
-    const trackSrc = getUri('audio/feel-good-inc.mp3');
-
-    useEffect(() => {
-        const audio = new Audio(trackSrc);
-        audioRef.current = audio;
-
-        const dispatchProgress = (currentTime, duration) => {
-            const safeDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
-            const safeCurrentTime = Number.isFinite(currentTime) ? currentTime : 0;
-            const progress = safeDuration > 0 ? Math.min(100, (safeCurrentTime / safeDuration) * 100) : 0;
-
-            window.dispatchEvent(new CustomEvent('musicProgress', {
-                detail: {
-                    progress,
-                    currentTime: safeCurrentTime,
-                    duration: safeDuration
-                }
-            }));
-        };
-
-        const handleTimeUpdate = () => {
-            if (audio.duration) {
-                const newProgress = (audio.currentTime / audio.duration) * 100;
-                dispatchProgress(audio.currentTime, audio.duration);
-                if (newProgress >= 100) {
-                    setIsPlaying(false);
-                    audio.pause();
-                    audio.currentTime = 0;
-                    dispatchProgress(0, audio.duration);
-                }
-            }
-        };
-
-        const handleLoadedMetadata = () => {
-            dispatchProgress(audio.currentTime, audio.duration);
-        };
-
-        const handleEnded = () => {
-            setIsPlaying(false);
-            window.dispatchEvent(new CustomEvent('musicState', {
-                detail: { isPlaying: false }
-            }));
-            dispatchProgress(0, audio.duration);
-        };
-
-        const handleSeek = (event) => {
-            const pct = Number(event?.detail?.progress);
-            if (!Number.isFinite(pct) || !audio.duration) return;
-
-            const clampedProgress = Math.max(0, Math.min(100, pct));
-            audio.currentTime = (clampedProgress / 100) * audio.duration;
-            dispatchProgress(audio.currentTime, audio.duration);
-        };
-
-        audio.addEventListener('timeupdate', handleTimeUpdate);
-        audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.addEventListener('ended', handleEnded);
-        window.addEventListener('musicSeek', handleSeek);
-
-        return () => {
-            audio.removeEventListener('timeupdate', handleTimeUpdate);
-            audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            audio.removeEventListener('ended', handleEnded);
-            window.removeEventListener('musicSeek', handleSeek);
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current = null;
-            }
-        };
-    }, [trackSrc]);
-
-    const togglePlayPause = () => {
-        if (audioRef.current) {
-            if (isPlaying) {
-                audioRef.current.pause();
-                setIsPlaying(false);
-                window.dispatchEvent(new CustomEvent('musicState', {
-                    detail: { isPlaying: false }
-                }));
-            } else {
-                audioRef.current.play()
-                    .then(() => {
-                        setIsPlaying(true);
-                        window.dispatchEvent(new CustomEvent('musicState', {
-                            detail: { isPlaying: true }
-                        }));
-                    })
-                    .catch((error) => {
-                        console.error('Unable to start audio playback:', error);
-                        setIsPlaying(false);
-                        window.dispatchEvent(new CustomEvent('musicState', {
-                            detail: { isPlaying: false }
-                        }));
-                    });
-            }
-        }
-    };
 
     return (
         <div className="relative">
@@ -114,7 +16,8 @@ export default function ProfilePicture() {
                         className={`pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition hover:scale-110 ${
                             isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                         }`}
-                        title={isPlaying ? 'Pause' : 'Play'}
+                        aria-label={isPlaying ? 'Pause music' : 'Play music'}
+                        type="button"
                     >
                         {isPlaying ? (
                             <svg className="size-10 bg-gray-800 rounded-full" fill="currentColor" viewBox="0 0 20 20">
@@ -131,6 +34,15 @@ export default function ProfilePicture() {
                 <div
                     className="mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer"
                     onClick={togglePlayPause}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            togglePlayPause();
+                        }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Toggle music from artwork"
                 >
                     <img
                         className="profile-picture block w-full h-auto"

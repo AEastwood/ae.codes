@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
-import { useGamesList } from '../../utils/games';
+import { useGamesList } from '../../hooks/useGamesList';
 import StartScreen from '../eastereggs/games/StartScreen';
 import Modal from './Modal';
 
@@ -23,18 +23,19 @@ export default function GamesModal({ setShowGamesModal, visible }) {
     };
 
     return (
-        <Modal visible={visible} onClose={game ? closeGame : closeModal}>
+        <Modal visible={visible} onClose={game ? closeGame : closeModal} title="Games">
             {!game ? (
                 <>
                     <div className="md:hidden p-8 text-center text-black">
                         <h2 className="text-xl font-bold mb-4">Screen Too Small</h2>
                         <p className="mb-4">Please use a larger screen to play</p>
                         <button
-                            onClick={closeGame}
+                            onClick={closeModal}
                             className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200"
-                            title="Back to Games"
+                            aria-label="Close games modal"
+                            type="button"
                         >
-                            Back to Games
+                            Close
                         </button>
                     </div>
 
@@ -44,8 +45,8 @@ export default function GamesModal({ setShowGamesModal, visible }) {
                                 key={game.name}
                                 onClick={() => setGame(game)}
                                 className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                title={game.name}
                                 aria-label={`Play ${game.name}`}
+                                type="button"
                             >
                                 {game.name}
                             </button>

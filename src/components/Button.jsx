@@ -36,7 +36,7 @@ export default function Button({ onClick, socialIcon }) {
     return (
         <button
             className="w-8 h-8"
-            title={socialIcon.name}
+            aria-label={socialIcon.name}
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             onKeyDown={handleKeyDown}

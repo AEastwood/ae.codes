@@ -7,8 +7,6 @@ export default {
 
   darkMode: "media",
 
-  mode: "jit",
-
   plugins: [],
 
   theme: {

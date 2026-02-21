@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import GameOverScreen from '../GameOverScreen';
+import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
+    useEscapeKey(onExit);
 
     // Game constants
     const BLOCK_SIZE = 30;
@@ -279,9 +281,6 @@ export default function Game({ onExit }) {
                         resetGame();
                     }
                     break;
-                case 'Escape':
-                    onExit();
-                    break;
             }
         };
 
@@ -295,7 +294,7 @@ export default function Game({ onExit }) {
         };
     // This effect intentionally controls the imperative game loop lifecycle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [gameOver, onExit]);
+    }, [gameOver]);
 
     return (
         <div className="relative flex gap-4 flex justify-center items-start bg-zinc-900 rounded-lg">
@@ -317,7 +316,7 @@ export default function Game({ onExit }) {
                     <canvas ref={nextPieceCanvasRef} width={BLOCK_SIZE * 4} height={BLOCK_SIZE * 4} />
                 </div>
             </div>
-            {gameOver && <GameOverScreen game='Tetris' score={score} onSubmit={resetGame} />}
+            {gameOver && <GameOverScreen game={{ name: 'Tetris' }} score={score} onSubmit={resetGame} />}
         </div>
     );
 }

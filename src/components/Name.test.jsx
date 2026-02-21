@@ -1,7 +1,18 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { act } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import Name from './Name';
+
+const mockMusicPlayerState = {
+    currentTime: 0,
+    duration: 0,
+    isPlaying: false,
+    progress: 0,
+    seekByProgress: vi.fn()
+};
+
+vi.mock('../hooks/useMusicPlayer', () => ({
+    useMusicPlayer: () => mockMusicPlayerState
+}));
 
 function setupName() {
     render(<Name />);
@@ -24,51 +35,36 @@ function setupName() {
 }
 
 describe('Name seek behavior', () => {
-    it('does not dispatch seek when track duration is unavailable', () => {
+    it('does not seek when track duration is unavailable', () => {
+        mockMusicPlayerState.duration = 0;
+        mockMusicPlayerState.progress = 0;
+        mockMusicPlayerState.currentTime = 0;
+        mockMusicPlayerState.seekByProgress.mockClear();
+
         const clickableName = setupName();
-        const seekHandler = vi.fn();
-
-        window.addEventListener('musicSeek', seekHandler);
         fireEvent.mouseDown(clickableName, { clientX: 100 });
-        window.removeEventListener('musicSeek', seekHandler);
-
-        expect(seekHandler).not.toHaveBeenCalled();
+        expect(mockMusicPlayerState.seekByProgress).not.toHaveBeenCalled();
     });
 
-    it('dispatches seek progress when duration is known', () => {
+    it('seeks using progress when duration is known', () => {
+        mockMusicPlayerState.duration = 200;
+        mockMusicPlayerState.progress = 25;
+        mockMusicPlayerState.currentTime = 50;
+        mockMusicPlayerState.seekByProgress.mockClear();
+
         const clickableName = setupName();
-        const seekHandler = vi.fn();
-
-        act(() => {
-            window.dispatchEvent(new CustomEvent('musicProgress', {
-                detail: {
-                    progress: 25,
-                    currentTime: 50,
-                    duration: 200
-                }
-            }));
-        });
-
-        window.addEventListener('musicSeek', seekHandler);
         fireEvent.mouseDown(clickableName, { clientX: 100 });
-        window.removeEventListener('musicSeek', seekHandler);
-
-        expect(seekHandler).toHaveBeenCalledTimes(1);
-        expect(seekHandler.mock.calls[0][0].detail.progress).toBe(50);
+        expect(mockMusicPlayerState.seekByProgress).toHaveBeenCalledTimes(1);
+        expect(mockMusicPlayerState.seekByProgress).toHaveBeenCalledWith(50);
     });
 
     it('shows hover seek target timestamp in tooltip', () => {
-        const clickableName = setupName();
+        mockMusicPlayerState.duration = 200;
+        mockMusicPlayerState.progress = 25;
+        mockMusicPlayerState.currentTime = 50;
+        mockMusicPlayerState.seekByProgress.mockClear();
 
-        act(() => {
-            window.dispatchEvent(new CustomEvent('musicProgress', {
-                detail: {
-                    progress: 25,
-                    currentTime: 50,
-                    duration: 200
-                }
-            }));
-        });
+        const clickableName = setupName();
 
         fireEvent.mouseMove(clickableName, { clientX: 150 });
         expect(screen.getByText('2:30 / 3:20')).toBeInTheDocument();

@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import GamesModal from './GamesModal';
 
-vi.mock('../../utils/games', () => ({
+vi.mock('../../hooks/useGamesList', () => ({
     useGamesList: () => [
         {
             component: () => <div>Mock Game</div>,

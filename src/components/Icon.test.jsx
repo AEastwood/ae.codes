@@ -14,6 +14,5 @@ describe('Icon', () => {
         const image = screen.getByRole('img', { name: 'GitHub icon' });
 
         expect(image).toHaveAttribute('src', 'https://cdn.example.com/images/socials/github.svg');
-        expect(image).toHaveAttribute('title', 'GitHub');
     });
 });

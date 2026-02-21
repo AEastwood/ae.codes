@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import PropTypes from 'prop-types';
 import { useCdn } from '../../../../hooks/useCdn';
+import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 import GameOverScreen from '../GameOverScreen';
 
 export default function Game({ onExit }) {
@@ -9,6 +10,7 @@ export default function Game({ onExit }) {
     const [score, setScore] = useState(0);
     const playerSpriteRef = useRef(null);
     const { getUri } = useCdn();
+    useEscapeKey(onExit);
     
     {/* Game constants */}
     const FPS = 60;
@@ -163,9 +165,6 @@ export default function Game({ onExit }) {
                     handleJump();
                 }
             }
-            if (e.code === 'Escape') {
-                onExit();
-            }
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -179,7 +178,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [FRAME_TIME, gameOver, getUri, onExit]);
+    }, [FRAME_TIME, gameOver, getUri]);
 
     return (
         <div className="relative">
@@ -198,7 +197,7 @@ export default function Game({ onExit }) {
             {/* Game over overlay */}
             {gameOver && (
                 <GameOverScreen 
-                    game='Runner'
+                    game={{ name: 'Runner' }}
                     score={score} 
                     onSubmit={() => {
                         // Ensure game loop is stopped before resetting
