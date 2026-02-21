@@ -133,18 +133,18 @@ export default function ProfilePicture() {
                     onClick={togglePlayPause}
                 >
                     <img
-                        className={`profile-picture block w-full h-auto transition-opacity duration-500 ease-in-out ${
-                            isPlaying ? 'opacity-0' : 'opacity-100'
-                        }`}
+                        className="profile-picture block w-full h-auto"
                         src={pausedImageSrc}
                         alt="Adam Eastwood"
+                        loading="eager"
                     />
                     <img
                         className={`profile-picture absolute inset-0 block w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
-                            isPlaying ? 'opacity-100' : 'opacity-0'
+                            isPlaying ? 'opacity-100 visible' : 'opacity-0 invisible'
                         }`}
                         src={getUri('images/me-gorillaz.png')}
                         alt="Adam Eastwood Gorillaz"
+                        loading="lazy"
                     />
                 </div>
             </div>
