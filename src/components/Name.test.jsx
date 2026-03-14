@@ -50,6 +50,7 @@ describe('Name seek behavior', () => {
         mockMusicPlayerState.duration = 200;
         mockMusicPlayerState.progress = 25;
         mockMusicPlayerState.currentTime = 50;
+        mockMusicPlayerState.isPlaying = true;
         mockMusicPlayerState.seekByProgress.mockClear();
 
         const clickableName = setupName();
@@ -62,6 +63,7 @@ describe('Name seek behavior', () => {
         mockMusicPlayerState.duration = 200;
         mockMusicPlayerState.progress = 25;
         mockMusicPlayerState.currentTime = 50;
+        mockMusicPlayerState.isPlaying = true;
         mockMusicPlayerState.seekByProgress.mockClear();
 
         const clickableName = setupName();

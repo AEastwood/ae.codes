@@ -68,6 +68,9 @@ export default function Name() {
     const [isDraggingSeek, setIsDraggingSeek] = useState(false);
     const containerRef = useRef(null);
     const { currentTime, duration, isPlaying, progress, seekByProgress } = useMusicPlayer();
+    const canSeek = duration > 0;
+    const showProgressBar = isPlaying;
+    const canSeekInteract = showProgressBar && canSeek;
 
     useEffect(() => {
         if (isPlaying) {
@@ -107,6 +110,7 @@ export default function Name() {
     }, []);
 
     const handleNameMouseMove = (event) => {
+        if (!canSeekInteract) return;
         const nextProgress = getProgressFromClientX(event.clientX);
         if (nextProgress == null) return;
         setHoverProgress(nextProgress);
@@ -118,15 +122,15 @@ export default function Name() {
     };
 
     const seekToClientX = useCallback((clientX) => {
-        if (duration <= 0) return;
+        if (!canSeekInteract || duration <= 0) return;
         const seekProgress = getProgressFromClientX(clientX);
         if (seekProgress == null) return;
         setHoverProgress(seekProgress);
         seekByProgress(seekProgress);
-    }, [duration, getProgressFromClientX, seekByProgress]);
+    }, [canSeekInteract, duration, getProgressFromClientX, seekByProgress]);
 
     const handleSeekMouseDown = (event) => {
-        if (duration <= 0) return;
+        if (!canSeekInteract || duration <= 0) return;
         event.preventDefault();
         setIsDraggingSeek(true);
         seekToClientX(event.clientX);
@@ -153,7 +157,6 @@ export default function Name() {
         };
     }, [isDraggingSeek, seekToClientX]);
 
-    const canSeek = duration > 0;
     const seekPreviewProgress = hoverProgress ?? progress;
     const seekPreviewTime = (seekPreviewProgress / 100) * duration;
     const currentLyric = useMemo(() => {
@@ -176,20 +179,20 @@ export default function Name() {
                 <div
                     ref={containerRef}
                     className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block select-none ${
-                        canSeek ? 'cursor-pointer' : 'cursor-default'
+                        canSeekInteract ? 'cursor-pointer' : 'cursor-default'
                     }`}
                     onMouseMove={handleNameMouseMove}
                     onMouseLeave={handleNameMouseLeave}
                     onMouseDown={handleSeekMouseDown}
                 >
                     <span
-                        className="name-progress-text relative"
-                        data-text="Adam Eastwood"
-                        style={{ '--music-progress': `${progress}%` }}
+                        className={showProgressBar ? 'name-progress-text relative' : 'relative'}
+                        data-text={showProgressBar ? 'Adam Eastwood' : undefined}
+                        style={showProgressBar ? { '--music-progress': `${progress}%` } : undefined}
                     >
                         Adam Eastwood
                     </span>
-                    {hoverProgress != null && canSeek ? (
+                    {showProgressBar && hoverProgress != null && canSeekInteract ? (
                         <>
                             <div
                                 className="absolute z-[9999] -top-9 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-xs whitespace-nowrap pointer-events-none"
