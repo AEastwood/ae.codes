@@ -92,8 +92,11 @@ export default function Game({ onExit }) {
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) return;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let active = true;
 
         const shootPlayerBullet = () => {
             const now = performance.now();
@@ -253,6 +256,7 @@ export default function Game({ onExit }) {
         };
 
         const gameLoop = () => {
+            if (!active) return;
             if (!gameOver) {
                 updatePlayer();
                 updateBullets();
@@ -289,6 +293,7 @@ export default function Game({ onExit }) {
         window.addEventListener('keyup', handleKeyUp);
 
         return () => {
+            active = false;
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
             if (gameLoopRef.current) {

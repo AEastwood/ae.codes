@@ -4,6 +4,15 @@ import { useCdn } from '../../../../hooks/useCdn';
 import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 import GameOverScreen from '../GameOverScreen';
 
+const FPS = 60;
+const FRAME_TIME = 1000 / FPS;
+const GRAVITY = 0.4;
+const JUMP_FORCE = -8;
+const PIPE_WIDTH = 60;
+const PIPE_GAP = 150;
+const PIPE_SPEED = 3;
+const PIPE_SPAWN_RATE = 90;
+
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
@@ -12,17 +21,6 @@ export default function Game({ onExit }) {
     const { getUri } = useCdn();
     useEscapeKey(onExit);
 
-    {/* Game constants */ }
-    const FPS = 60;
-    const FRAME_TIME = 1000 / FPS;
-    const GRAVITY = 0.4;
-    const JUMP_FORCE = -8;
-    const PIPE_WIDTH = 60;
-    const PIPE_GAP = 150;
-    const PIPE_SPEED = 3;
-    const PIPE_SPAWN_RATE = 90;
-
-    {/* Game state refs */ }
     const playerRef = useRef({ x: 100, y: 200, width: 40, height: 40 });
     const pipesRef = useRef([]);
     const velocityRef = useRef(0);
@@ -31,7 +29,6 @@ export default function Game({ onExit }) {
     const timeRef = useRef(0);
     const lastTimeRef = useRef(0);
 
-    {/* Reset game state to initial values */ }
     const resetGame = () => {
         setGameOver(false);
         setScore(0);
@@ -39,51 +36,52 @@ export default function Game({ onExit }) {
         pipesRef.current = [];
         velocityRef.current = 0;
         frameCountRef.current = 0;
+        timeRef.current = 0;
+        lastTimeRef.current = 0;
     };
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
-        if (!canvas || !ctx) return;
+        if (!canvas) return;
 
-        {/* Load player sprite image */ }
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let active = true;
+
         const playerSprite = new Image();
-        playerSprite.src = getUri('images/me.webp');
+        playerSprite.src = getUri('images/me.jpeg');
         playerSpriteRef.current = playerSprite;
 
-        {/* Main game loop */ }
+        const handleJump = () => {
+            if (!gameOver) {
+                velocityRef.current = JUMP_FORCE;
+            }
+        };
+
         const gameLoop = (timestamp) => {
-            {/* Calculate delta time for smooth animation */ }
+            if (!active) return;
+
             if (!lastTimeRef.current) lastTimeRef.current = timestamp;
             const deltaTime = timestamp - lastTimeRef.current;
             timeRef.current += deltaTime;
             lastTimeRef.current = timestamp;
 
-            {/* Update game state at fixed time intervals */ }
             while (timeRef.current >= FRAME_TIME) {
-                {/* Update player physics */ }
                 velocityRef.current += GRAVITY;
                 playerRef.current.y += velocityRef.current;
 
-                {/* Generate new pipes */ }
                 frameCountRef.current++;
                 if (frameCountRef.current % PIPE_SPAWN_RATE === 0) {
                     const minHeight = 50;
                     const maxHeight = canvas.height - PIPE_GAP - minHeight;
                     const topHeight = Math.random() * (maxHeight - minHeight) + minHeight;
-
-                    pipesRef.current.push({
-                        x: canvas.width,
-                        topHeight,
-                        passed: false
-                    });
+                    pipesRef.current.push({ x: canvas.width, topHeight, passed: false });
                 }
 
-                {/* Update and check pipe collisions */ }
                 pipesRef.current = pipesRef.current.filter(pipe => {
                     pipe.x -= PIPE_SPEED;
 
-                    {/* Check collision with pipes */ }
                     if (
                         playerRef.current.x + playerRef.current.width > pipe.x &&
                         playerRef.current.x < pipe.x + PIPE_WIDTH &&
@@ -93,7 +91,6 @@ export default function Game({ onExit }) {
                         setGameOver(true);
                     }
 
-                    {/* Update score when passing pipe */ }
                     if (!pipe.passed && playerRef.current.x > pipe.x + PIPE_WIDTH) {
                         pipe.passed = true;
                         setScore(prev => prev + 1);
@@ -102,7 +99,6 @@ export default function Game({ onExit }) {
                     return pipe.x > -PIPE_WIDTH;
                 });
 
-                {/* Check if player hits canvas boundaries */ }
                 if (playerRef.current.y < 0 || playerRef.current.y > canvas.height) {
                     setGameOver(true);
                 }
@@ -110,10 +106,8 @@ export default function Game({ onExit }) {
                 timeRef.current -= FRAME_TIME;
             }
 
-            {/* Render game elements */ }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            {/* Draw pipes */ }
             pipesRef.current.forEach(pipe => {
                 ctx.fillStyle = '#75b753';
                 ctx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
@@ -121,7 +115,6 @@ export default function Game({ onExit }) {
                 ctx.fillRect(pipe.x, bottomY, PIPE_WIDTH, canvas.height - bottomY);
             });
 
-            {/* Draw player with rotation based on velocity */ }
             ctx.save();
             ctx.translate(
                 playerRef.current.x + playerRef.current.width / 2,
@@ -129,16 +122,17 @@ export default function Game({ onExit }) {
             );
             ctx.rotate(velocityRef.current * 0.04);
 
-            if (playerSpriteRef.current?.complete) {
+            const sprite = playerSpriteRef.current;
+            if (sprite?.complete && sprite.naturalWidth > 0) {
                 ctx.drawImage(
-                    playerSpriteRef.current,
+                    sprite,
                     -playerRef.current.width / 2,
                     -playerRef.current.height / 2,
                     playerRef.current.width,
                     playerRef.current.height
                 );
             } else {
-                ctx.fillStyle = '#00f';
+                ctx.fillStyle = '#e8b84b';
                 ctx.fillRect(
                     -playerRef.current.width / 2,
                     -playerRef.current.height / 2,
@@ -153,19 +147,9 @@ export default function Game({ onExit }) {
             }
         };
 
-        {/* Start game loop */ }
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
-        {/* Setup event listeners */ }
-        const handleJump = () => {
-            if (!gameOver) {
-                velocityRef.current = JUMP_FORCE;
-            }
-        };
-
         const handleKeyDown = (e) => {
-            if (gameOver) return;
-            
             if (e.code === 'Space') {
                 if (gameOver) {
                     resetGame();
@@ -178,15 +162,16 @@ export default function Game({ onExit }) {
         window.addEventListener('keydown', handleKeyDown);
         canvas.addEventListener('click', handleJump);
 
-        {/* Cleanup event listeners and game loop */ }
         return () => {
+            active = false;
             window.removeEventListener('keydown', handleKeyDown);
             canvas.removeEventListener('click', handleJump);
             if (gameLoopRef.current) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [FRAME_TIME, JUMP_FORCE, gameOver, getUri]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [gameOver, getUri]);
 
     return (
         <div className="relative">

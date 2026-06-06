@@ -4,6 +4,9 @@ import { useCdn } from '../../../../hooks/useCdn';
 import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 import GameOverScreen from '../GameOverScreen';
 
+const FRAME_TIME = 1000 / 60;
+const GROUND_LEVEL = 300;
+
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
@@ -11,12 +14,7 @@ export default function Game({ onExit }) {
     const playerSpriteRef = useRef(null);
     const { getUri } = useCdn();
     useEscapeKey(onExit);
-    
-    {/* Game constants */}
-    const FPS = 60;
-    const FRAME_TIME = 1000 / FPS;
-    
-    {/* Game state refs */}
+
     const playerRef = useRef({ x: 50, y: 200, width: 40, height: 40 });
     const obstaclesRef = useRef([]);
     const isJumpingRef = useRef(false);
@@ -24,9 +22,7 @@ export default function Game({ onExit }) {
     const gameLoopRef = useRef();
     const timeRef = useRef(0);
     const lastTimeRef = useRef(0);
-    const groundLevel = 300;
 
-    {/* Reset game state to initial values */}
     const resetGame = () => {
         setGameOver(false);
         setScore(0);
@@ -38,62 +34,56 @@ export default function Game({ onExit }) {
         lastTimeRef.current = 0;
     };
 
-    {/* Handle player jump action */}
-    const handleJump = () => {
-        if (!isJumpingRef.current && playerRef.current.y >= groundLevel - playerRef.current.height) {
-            isJumpingRef.current = true;
-            jumpVelocityRef.current = -15;
-        }
-    };
-
     useEffect(() => {
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
         if (!canvas || !ctx) return;
 
-        {/* Load player sprite image */}
         const playerSprite = new Image();
-        playerSprite.src = getUri('images/me.webp');
+        playerSprite.src = getUri('images/me.jpeg');
         playerSpriteRef.current = playerSprite;
 
-        {/* Main game loop */}
+        let active = true;
+
+        const handleJump = () => {
+            if (!isJumpingRef.current && playerRef.current.y >= GROUND_LEVEL - playerRef.current.height) {
+                isJumpingRef.current = true;
+                jumpVelocityRef.current = -15;
+            }
+        };
+
         const gameLoop = (timestamp) => {
-            {/* Calculate delta time for smooth animation */}
+            if (!active) return;
             if (!lastTimeRef.current) lastTimeRef.current = timestamp;
             const deltaTime = timestamp - lastTimeRef.current;
             timeRef.current += deltaTime;
             lastTimeRef.current = timestamp;
 
-            {/* Update game state at fixed time intervals */}
             while (timeRef.current >= FRAME_TIME) {
-                {/* Update player physics */}
-                if (isJumpingRef.current || playerRef.current.y < groundLevel - playerRef.current.height) {
+                if (isJumpingRef.current || playerRef.current.y < GROUND_LEVEL - playerRef.current.height) {
                     playerRef.current.y += jumpVelocityRef.current;
-                    jumpVelocityRef.current += 0.8; // Gravity
+                    jumpVelocityRef.current += 0.8;
 
-                    if (playerRef.current.y >= groundLevel - playerRef.current.height) {
-                        playerRef.current.y = groundLevel - playerRef.current.height;
+                    if (playerRef.current.y >= GROUND_LEVEL - playerRef.current.height) {
+                        playerRef.current.y = GROUND_LEVEL - playerRef.current.height;
                         isJumpingRef.current = false;
                         jumpVelocityRef.current = 0;
                     }
                 }
 
-                {/* Generate new obstacles */}
                 if (Math.random() < 0.02) {
                     obstaclesRef.current.push({
                         x: canvas.width,
-                        y: groundLevel - 20,
+                        y: GROUND_LEVEL - 20,
                         width: 20,
                         height: 20,
                         speed: 5
                     });
                 }
 
-                {/* Update obstacles and check collisions */}
                 obstaclesRef.current = obstaclesRef.current.filter(obstacle => {
-                    obstacle.x -= obstacle.speed || 5;
-                    
-                    {/* Check collision with player */}
+                    obstacle.x -= obstacle.speed;
+
                     if (
                         playerRef.current.x < obstacle.x + obstacle.width &&
                         playerRef.current.x + playerRef.current.width > obstacle.x &&
@@ -103,25 +93,20 @@ export default function Game({ onExit }) {
                         setGameOver(true);
                         return false;
                     }
-                    
+
                     return obstacle.x > -obstacle.width;
                 });
 
-                {/* Update score */}
                 setScore(prev => prev + 1);
-
 
                 timeRef.current -= FRAME_TIME;
             }
 
-            {/* Render game elements */}
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            {/* Draw ground */}
             ctx.fillStyle = '#000';
-            ctx.fillRect(0, groundLevel, canvas.width, 2);
+            ctx.fillRect(0, GROUND_LEVEL, canvas.width, 2);
 
-            {/* Draw player sprite or fallback rectangle */}
             if (playerSpriteRef.current?.complete) {
                 ctx.drawImage(
                     playerSpriteRef.current,
@@ -140,7 +125,6 @@ export default function Game({ onExit }) {
                 );
             }
 
-            {/* Draw obstacles */}
             obstaclesRef.current.forEach(obstacle => {
                 ctx.fillStyle = '#f00';
                 ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
@@ -151,13 +135,9 @@ export default function Game({ onExit }) {
             }
         };
 
-        {/* Start game loop */}
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
-        {/* Setup event listeners */}
         const handleKeyDown = (e) => {
-            if (gameOver) return;
-            
             if (e.code === 'Space') {
                 if (gameOver) {
                     resetGame();
@@ -170,15 +150,15 @@ export default function Game({ onExit }) {
         window.addEventListener('keydown', handleKeyDown);
         canvas.addEventListener('click', handleJump);
 
-        {/* Cleanup event listeners and game loop */}
         return () => {
+            active = false;
             window.removeEventListener('keydown', handleKeyDown);
             canvas.removeEventListener('click', handleJump);
             if (gameLoopRef.current) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    }, [FRAME_TIME, gameOver, getUri]);
+    }, [gameOver, getUri]);
 
     return (
         <div className="relative">
@@ -188,24 +168,19 @@ export default function Game({ onExit }) {
                 height={400}
                 className="bg-white rounded-lg shadow-lg"
             />
-            
-            {/* Score display */}
             <div className="absolute top-4 right-4 text-black font-mono text-2xl">
                 Score: {score}
             </div>
-
-            {/* Game over overlay */}
             {gameOver && (
-                <GameOverScreen 
+                <GameOverScreen
                     game={{ name: 'Runner' }}
-                    score={score} 
+                    score={score}
                     onSubmit={() => {
-                        // Ensure game loop is stopped before resetting
                         if (gameLoopRef.current) {
                             cancelAnimationFrame(gameLoopRef.current);
                         }
                         resetGame();
-                    }} 
+                    }}
                 />
             )}
         </div>

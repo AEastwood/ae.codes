@@ -3,37 +3,35 @@ import PropTypes from 'prop-types';
 import GameOverScreen from '../GameOverScreen';
 import { useEscapeKey } from '../../../../hooks/useEscapeKey';
 
+const BLOCK_SIZE = 30;
+const BOARD_WIDTH = 15;
+const BOARD_HEIGHT = 20;
+
+const TETROMINOES = {
+    I: [[1, 1, 1, 1]],
+    O: [[1, 1], [1, 1]],
+    T: [[0, 1, 0], [1, 1, 1]],
+    L: [[1, 0], [1, 0], [1, 1]],
+    J: [[0, 1], [0, 1], [1, 1]],
+    S: [[0, 1, 1], [1, 1, 0]],
+    Z: [[1, 1, 0], [0, 1, 1]]
+};
+
+const COLORS = {
+    I: '#00f0f0',
+    O: '#f0f000',
+    T: '#a000f0',
+    L: '#f0a000',
+    J: '#0000f0',
+    S: '#00f000',
+    Z: '#f00000'
+};
+
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
     const [score, setScore] = useState(0);
     useEscapeKey(onExit);
-
-    // Game constants
-    const BLOCK_SIZE = 30;
-    const BOARD_WIDTH = 15;
-    const BOARD_HEIGHT = 20;
-
-    // Tetromino shapes
-    const TETROMINOES = {
-        I: [[1, 1, 1, 1]],
-        O: [[1, 1], [1, 1]],
-        T: [[0, 1, 0], [1, 1, 1]],
-        L: [[1, 0], [1, 0], [1, 1]],
-        J: [[0, 1], [0, 1], [1, 1]],
-        S: [[0, 1, 1], [1, 1, 0]],
-        Z: [[1, 1, 0], [0, 1, 1]]
-    };
-
-    const COLORS = {
-        I: '#00f0f0',
-        O: '#f0f000',
-        T: '#a000f0',
-        L: '#f0a000',
-        J: '#0000f0',
-        S: '#00f000',
-        Z: '#f00000'
-    };
 
     // Game state refs
     const boardRef = useRef(Array(BOARD_HEIGHT).fill().map(() => Array(BOARD_WIDTH).fill(0)));
