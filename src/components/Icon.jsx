@@ -7,7 +7,7 @@ function Icon({ name, icon }) {
 
     return (
         <img
-            className="hover:scale-[1.3] transition rounded"
+            className="hover:scale-[1.3] transition duration-200 rounded"
             src={getUri(icon)}
             alt={`${name} icon`}
         />
