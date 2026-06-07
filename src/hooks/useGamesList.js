@@ -17,7 +17,7 @@ export const useGamesList = () => {
         },
         {
             component: RunnerGame,
-            instructions: 'Avoid the obstacles and jump to clear them',
+            instructions: 'Avoid the obstacles by jumping over them — the longer you survive, the higher your score!',
             controls: ['Space or Left Mouse Button - Jump'],
             name: 'Runner'
         },
