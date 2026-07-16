@@ -259,6 +259,7 @@ export default function Game({ onExit }) {
 
         // Setup event listeners
         const handleKeyDown = (e) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
             if (gameOver) return;
 
             switch (e.code) {

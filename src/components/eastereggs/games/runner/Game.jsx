@@ -138,6 +138,7 @@ export default function Game({ onExit }) {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
         const handleKeyDown = (e) => {
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
             if (e.code === 'Space') {
                 if (gameOver) {
                     resetGame();

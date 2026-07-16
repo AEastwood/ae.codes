@@ -275,6 +275,7 @@ export default function Game({ onExit }) {
         gameLoopRef.current = requestAnimationFrame(gameLoop);
 
         const handleKeyDown = (event) => {
+            if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
             if (event.code === 'ArrowLeft') keysRef.current.left = true;
             if (event.code === 'ArrowRight') keysRef.current.right = true;
             if (event.code === 'Space') {
