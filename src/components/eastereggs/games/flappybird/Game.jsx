@@ -171,7 +171,7 @@ export default function Game({ onExit }) {
                 cancelAnimationFrame(gameLoopRef.current);
             }
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
     }, [gameOver, getUri]);
 
     return (
