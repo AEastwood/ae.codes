@@ -28,7 +28,7 @@ export default class GameErrorBoundary extends Component {
                     <button
                         type="button"
                         onClick={this.handleReset}
-                        className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+                        className="px-4 py-2 bg-blue-600 rounded-sm hover:bg-blue-700"
                     >
                         Reload Game
                     </button>

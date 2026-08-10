@@ -178,7 +178,7 @@ export default function Name() {
             <div className="flex flex-col gap-3 tracking-wider mb-3 text-center">
                 <div
                     ref={containerRef}
-                    className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow relative inline-block select-none ${
+                    className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow-sm relative inline-block select-none ${
                         canSeekInteract ? 'cursor-pointer' : 'cursor-default'
                     }`}
                     onMouseMove={handleNameMouseMove}
@@ -195,7 +195,7 @@ export default function Name() {
                     {showProgressBar && hoverProgress != null && canSeekInteract ? (
                         <>
                             <div
-                                className="absolute z-[9999] -top-9 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-xs whitespace-nowrap pointer-events-none"
+                                className="absolute z-9999 -top-9 -translate-x-1/2 px-2 py-1 rounded-md bg-black/80 text-white text-xs whitespace-nowrap pointer-events-none"
                                 style={{ left: `${hoverProgress}%` }}
                                 aria-hidden="true"
                             >

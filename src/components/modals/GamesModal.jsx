@@ -31,7 +31,7 @@ export default function GamesModal({ setShowGamesModal, visible }) {
                         <p className="mb-4">Please use a larger screen to play</p>
                         <button
                             onClick={closeModal}
-                            className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200"
+                            className="px-4 py-2 bg-white text-black rounded-sm hover:bg-gray-200"
                             aria-label="Close games modal"
                             type="button"
                         >
@@ -44,7 +44,7 @@ export default function GamesModal({ setShowGamesModal, visible }) {
                             <button
                                 key={game.name}
                                 onClick={() => setGame(game)}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-sm"
                                 aria-label={`Play ${game.name}`}
                                 type="button"
                             >
