@@ -3,6 +3,9 @@
 My personal portfolio website built with React featuring some fun easter eggs.
 
 ## Getting Started
+
+Requires Node.js 24+ (see `.nvmrc`).
+
 1. `npm install`
 2. `npm run dev`
 3. `npm run build`
