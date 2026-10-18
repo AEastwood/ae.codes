@@ -1,27 +1,8 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import feelGoodIncLyrics from '../assets/music/feel-good-inc.lrc?raw';
 import { useMusicPlayer } from '../hooks/useMusicPlayer';
+import KaraokeLine from './KaraokeLine';
+import { lyricsTimeline } from '../utils/lyrics';
 
-function parseLrc(content) {
-    return content
-        .split('\n')
-        .map((line) => line.trim())
-        .filter(Boolean)
-        .flatMap((line) => {
-            const match = line.match(/^\[(\d{2}):(\d{2}(?:\.\d{1,2})?)\](.*)$/);
-            if (!match) return [];
-
-            const minutes = Number(match[1]);
-            const seconds = Number(match[2]);
-            const text = match[3].trim();
-            if (!Number.isFinite(minutes) || !Number.isFinite(seconds) || !text) return [];
-
-            return [{ text, time: (minutes * 60) + seconds }];
-        })
-        .sort((a, b) => a.time - b.time);
-}
-
-const lyricsTimeline = parseLrc(feelGoodIncLyrics);
 const taglines = [
     "Building digital empires one commit at a time.",
     "Architecting tomorrow's solutions today.",
@@ -67,7 +48,7 @@ export default function Name() {
     const [hoverProgress, setHoverProgress] = useState(null);
     const [isDraggingSeek, setIsDraggingSeek] = useState(false);
     const containerRef = useRef(null);
-    const { currentTime, duration, isPlaying, progress, seekByProgress } = useMusicPlayer();
+    const { currentTime, duration, getPlaybackTime, isPlaying, progress, seekByProgress } = useMusicPlayer();
     const canSeek = duration > 0;
     const showProgressBar = isPlaying;
     const canSeekInteract = showProgressBar && canSeek;
@@ -157,17 +138,19 @@ export default function Name() {
     const seekPreviewProgress = hoverProgress ?? progress;
     const seekPreviewTime = (seekPreviewProgress / 100) * duration;
     const currentLyric = useMemo(() => {
-        let activeLyric = '';
+        let activeLyric = null;
         for (const lyric of lyricsTimeline) {
             if (currentTime >= lyric.time) {
-                activeLyric = lyric.text;
+                activeLyric = lyric;
                 continue;
             }
             break;
         }
         return activeLyric;
     }, [currentTime]);
-    const displayedSubtitle = isPlaying ? currentLyric : taglines[currentTaglineIndex];
+    const displayedSubtitle = isPlaying
+        ? currentLyric && <KaraokeLine key={currentLyric.time} line={currentLyric} getPlaybackTime={getPlaybackTime} />
+        : taglines[currentTaglineIndex];
 
     return (
         <>

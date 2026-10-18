@@ -75,3 +75,15 @@ describe('Name seek behavior', () => {
         expect(screen.queryByText('2:30 / 3:20')).not.toBeInTheDocument();
     });
 });
+
+describe('Name karaoke lyrics', () => {
+    it('shows the current lyric split into timed words while playing', () => {
+        mockMusicPlayerState.isPlaying = true;
+        mockMusicPlayerState.duration = 255;
+        mockMusicPlayerState.currentTime = 60;
+        mockMusicPlayerState.getPlaybackTime = () => 60;
+
+        const { container } = render(<Name />);
+        expect(container.querySelectorAll('.karaoke-word').length).toBeGreaterThan(1);
+    });
+});

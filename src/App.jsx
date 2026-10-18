@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import AnimatedBackground from './components/AnimatedBackground'
 import Name from './components/Name'
 import ProfilePicture from './components/ProfilePicture'
 import Socials from './components/Socials'
@@ -14,6 +15,8 @@ function App() {
       <div
         className="app flex flex-col gap-6 h-screen text-gray-100 justify-center items-center"
       >
+        <AnimatedBackground />
+
         <KonamiCode
           setEasterEggsEnabled={setEasterEggsEnabled}
           showGamesModal={showGamesModal}

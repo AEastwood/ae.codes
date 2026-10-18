@@ -1,21 +1,22 @@
+import { useRef } from 'react';
 import { useCdn } from '../hooks/useCdn';
 import { useMusicPlayer } from '../hooks/useMusicPlayer';
+import SingingMouth from './SingingMouth';
 
 export default function ProfilePicture() {
     const { getUri } = useCdn();
-    const { isPlaying, togglePlayPause } = useMusicPlayer();
+    const { getPlaybackTime, isPlaying, togglePlayPause } = useMusicPlayer();
+    const tiltRef = useRef(null);
     const pausedImageSrc = getUri('images/me.jpeg');
 
     return (
         <div className="relative">
             <div className="relative group">
-                {/* Hover play/pause button */}
+                {/* Hover play/pause button, hidden otherwise so it doesn't cover the singing face */}
                 <div className="absolute inset-0 z-30 pointer-events-none">
                     <button
                         onClick={togglePlayPause}
-                        className={`pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition hover:scale-110 ${
-                            isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                        }`}
+                        className="pointer-events-auto absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white/90 hover:bg-white rounded-full shadow-lg transition hover:scale-110 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
                         aria-label={isPlaying ? 'Pause music' : 'Play music'}
                         type="button"
                     >
@@ -31,33 +32,36 @@ export default function ProfilePicture() {
                     </button>
                 </div>
 
-                <div
-                    className="mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer"
-                    onClick={togglePlayPause}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Enter' || event.key === ' ') {
-                            event.preventDefault();
-                            togglePlayPause();
-                        }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Toggle music from artwork"
-                >
-                    <img
-                        className="profile-picture block w-full h-auto"
-                        src={pausedImageSrc}
-                        alt="Adam Eastwood"
-                        loading="eager"
-                    />
-                    <img
-                        className={`profile-picture absolute inset-0 block w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
-                            isPlaying ? 'opacity-100 visible' : 'opacity-0 invisible'
-                        }`}
-                        src={getUri('images/me-gorillaz.png')}
-                        alt="Adam Eastwood Gorillaz"
-                        loading="lazy"
-                    />
+                <div ref={tiltRef} className="relative z-20 will-change-transform">
+                    <div
+                        className="mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer"
+                        onClick={togglePlayPause}
+                        onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') {
+                                event.preventDefault();
+                                togglePlayPause();
+                            }
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Toggle music from artwork"
+                    >
+                        <img
+                            className="profile-picture block w-full h-auto"
+                            src={pausedImageSrc}
+                            alt="Adam Eastwood"
+                            loading="eager"
+                        />
+                        <img
+                            className={`profile-picture absolute inset-0 block w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
+                                isPlaying ? 'opacity-100 visible' : 'opacity-0 invisible'
+                            }`}
+                            src={getUri('images/me-gorillaz.png')}
+                            alt="Adam Eastwood Gorillaz"
+                            loading="lazy"
+                        />
+                        <SingingMouth active={isPlaying} getPlaybackTime={getPlaybackTime} tiltRef={tiltRef} />
+                    </div>
                 </div>
             </div>
         </div>

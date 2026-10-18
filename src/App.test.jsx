@@ -7,6 +7,10 @@ vi.mock('./context/MusicPlayerContext', () => ({
     MusicPlayerProvider: ({ children }) => <>{children}</>
 }));
 
+vi.mock('./components/AnimatedBackground', () => ({
+    default: () => null
+}));
+
 vi.mock('./components/Name', () => ({
     default: () => <div>Name Component</div>
 }));

@@ -95,14 +95,18 @@ export function MusicPlayerProvider({ children }) {
         syncFromAudio(audio);
     }, [syncFromAudio]);
 
+    // Precise playback position for frame-by-frame sync; `currentTime` state only updates a few times a second
+    const getPlaybackTime = useCallback(() => audioRef.current?.currentTime ?? 0, []);
+
     const value = useMemo(() => ({
         currentTime,
         duration,
+        getPlaybackTime,
         isPlaying,
         progress,
         seekByProgress,
         togglePlayPause
-    }), [currentTime, duration, isPlaying, progress, seekByProgress, togglePlayPause]);
+    }), [currentTime, duration, getPlaybackTime, isPlaying, progress, seekByProgress, togglePlayPause]);
 
     return (
         <MusicPlayerContext.Provider value={value}>
