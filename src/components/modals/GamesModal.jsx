@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useGamesList } from '../../hooks/useGamesList';
 import StartScreen from '../eastereggs/games/StartScreen';
@@ -8,9 +8,13 @@ export default function GamesModal({ setShowGamesModal, visible }) {
     const [game, setGame] = useState(null);
     const games = useGamesList();
 
-    useEffect(() => {
+    const [prevVisible, setPrevVisible] = useState(visible);
+
+    // Reset the selected game whenever the modal is opened or closed
+    if (visible !== prevVisible) {
+        setPrevVisible(visible);
         setGame(null);
-    }, [setShowGamesModal, visible]);
+    }
 
     // Close game
     const closeGame = () => {

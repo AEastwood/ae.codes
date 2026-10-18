@@ -27,6 +27,15 @@ const COLORS = {
     Z: '#f00000'
 };
 
+const randomPiece = () => {
+    const pieces = Object.keys(TETROMINOES);
+    const piece = pieces[Math.floor(Math.random() * pieces.length)];
+    return {
+        shape: TETROMINOES[piece],
+        color: COLORS[piece]
+    };
+};
+
 export default function Game({ onExit }) {
     const canvasRef = useRef(null);
     const [gameOver, setGameOver] = useState(false);
@@ -50,21 +59,11 @@ export default function Game({ onExit }) {
         if (nextPieceRef.current) {
             currentPieceRef.current = nextPieceRef.current;
         } else {
-            const pieces = Object.keys(TETROMINOES);
-            const piece = pieces[Math.floor(Math.random() * pieces.length)];
-            currentPieceRef.current = {
-                shape: TETROMINOES[piece],
-                color: COLORS[piece]
-            };
+            currentPieceRef.current = randomPiece();
         }
 
         // Generate next piece
-        const pieces = Object.keys(TETROMINOES);
-        const piece = pieces[Math.floor(Math.random() * pieces.length)];
-        nextPieceRef.current = {
-            shape: TETROMINOES[piece],
-            color: COLORS[piece]
-        };
+        nextPieceRef.current = randomPiece();
 
         currentPosRef.current = {
             x: Math.floor(BOARD_WIDTH / 2) - Math.floor(currentPieceRef.current.shape[0].length / 2),

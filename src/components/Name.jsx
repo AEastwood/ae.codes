@@ -73,10 +73,7 @@ export default function Name() {
     const canSeekInteract = showProgressBar && canSeek;
 
     useEffect(() => {
-        if (isPlaying) {
-            setIsVisible(true);
-            return;
-        }
+        if (isPlaying) return;
 
         const interval = setInterval(() => {
             setIsVisible(false);
@@ -207,7 +204,7 @@ export default function Name() {
 
                 <div
                     className={`lg:text-lg text-center text-gray-150 min-h-7 transition-opacity duration-300 ${
-                        isVisible ? 'opacity-100' : 'opacity-0'
+                        isPlaying || isVisible ? 'opacity-100' : 'opacity-0'
                     }`}
                 >
                     {displayedSubtitle}
