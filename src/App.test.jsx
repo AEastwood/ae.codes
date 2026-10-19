@@ -23,6 +23,10 @@ vi.mock('./components/Socials', () => ({
     default: () => <div>Socials Component</div>
 }));
 
+vi.mock('./components/gig/GigMode', () => ({
+    default: () => <div>Gig Component</div>
+}));
+
 vi.mock('./components/eastereggs/KonamiCode', () => ({
     default: () => <div>Konami Component</div>
 }));
@@ -35,5 +39,6 @@ describe('App', () => {
         expect(screen.getByText('Profile Component')).toBeInTheDocument();
         expect(screen.getByText('Name Component')).toBeInTheDocument();
         expect(screen.getByText('Socials Component')).toBeInTheDocument();
+        expect(screen.getByText('Gig Component')).toBeInTheDocument();
     });
 });

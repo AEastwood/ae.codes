@@ -3,6 +3,7 @@ import AnimatedBackground from './components/AnimatedBackground'
 import Name from './components/Name'
 import ProfilePicture from './components/ProfilePicture'
 import Socials from './components/Socials'
+import GigMode from './components/gig/GigMode'
 import KonamiCode from './components/eastereggs/KonamiCode'
 import { MusicPlayerProvider } from './context/MusicPlayerContext'
 
@@ -25,7 +26,13 @@ function App() {
 
         <ProfilePicture />
 
-        <Name />
+        {/* The gig pill floats under the name so it doesn't push the icons around when it appears */}
+        <div className="relative flex flex-col items-center">
+          <Name />
+          <div className="absolute top-[calc(100%-0.85rem)] left-1/2 -translate-x-1/2 z-30">
+            <GigMode />
+          </div>
+        </div>
 
         <Socials
           showEasterEggs={easterEggsEnabled}

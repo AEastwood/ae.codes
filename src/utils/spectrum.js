@@ -53,7 +53,7 @@ export function loudnessAt(loudness, time) {
 // Beat grid fitted offline to the track (scripts/audio): fixed tempo, first beat, and which beat starts each bar
 export const BPM = 139.1025;
 export const FIRST_BEAT = 0.2913;
-const DOWNBEAT = 2;
+export const DOWNBEAT = 2;
 
 function bassAt(spectrum, frame) {
     let bass = 0;

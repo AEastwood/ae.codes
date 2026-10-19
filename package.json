@@ -21,7 +21,8 @@
     "prop-types": "^15.8.1",
     "react": "^19.3.1",
     "react-confetti-explosion": "^3.0.3",
-    "react-dom": "^19.3.1"
+    "react-dom": "^19.3.1",
+    "three": "^0.181.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

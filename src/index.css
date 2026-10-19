@@ -193,3 +193,111 @@ svg {
     background-size: 250% 100%;
     mix-blend-mode: soft-light;
 }
+
+/* Gig mode: the pill that opens the 3D stage, and the full-screen overlay it lives in */
+.gig-pill {
+    color: #060d0d;
+    background: rgba(240, 214, 90, 0.92);
+    box-shadow: 0 0 calc(6px + var(--music-beat, 0) * 18px) rgba(240, 214, 90, 0.6), 0 6px 16px rgba(6, 13, 13, 0.35);
+    white-space: nowrap;
+    animation: gig-pill-in 0.4s ease-out;
+    transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.gig-pill:hover,
+.gig-pill:focus-visible {
+    background: rgb(250, 228, 110);
+    transform: scale(1.06);
+}
+
+.gig-pill:focus-visible,
+.gig-control:focus-visible {
+    outline: 2px solid rgba(140, 255, 205, 0.9);
+    outline-offset: 3px;
+}
+
+@keyframes gig-pill-in {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+}
+
+.gig-overlay {
+    background: #060d0d;
+    opacity: 0;
+    transition: opacity 0.5s ease-out;
+}
+
+.gig-overlay.is-shown {
+    opacity: 1;
+}
+
+/* Darkened corners and a fine halftone over the render, like a printed gig poster */
+.gig-vignette {
+    background:
+        radial-gradient(circle, rgba(6, 13, 13, 0.12) 1px, transparent 1.6px) 0 0 / 4px 4px,
+        radial-gradient(ellipse at 50% 45%, transparent 55%, rgba(6, 13, 13, 0.7) 100%);
+    mix-blend-mode: multiply;
+}
+
+.gig-footer {
+    background: linear-gradient(to top, rgba(6, 13, 13, 0.85), rgba(6, 13, 13, 0));
+}
+
+.gig-lyric {
+    text-shadow: 0 2px 0 #060d0d, 0 0 18px rgba(6, 13, 13, 0.9);
+}
+
+.gig-control {
+    color: #f3efdf;
+    background: rgba(6, 13, 13, 0.55);
+    border: 1px solid rgba(140, 255, 205, 0.35);
+    backdrop-filter: blur(6px);
+    transition: background-color 0.15s ease-out, transform 0.15s ease-out;
+}
+
+.gig-control:hover {
+    background: rgba(39, 117, 126, 0.75);
+    transform: scale(1.06);
+}
+
+.gig-loading span {
+    width: 12px;
+    height: 12px;
+    border-radius: 9999px;
+    background: #d8b71f;
+    animation: gig-loading 0.86s ease-in-out infinite;
+}
+
+.gig-loading span:nth-child(2) {
+    background: #8cffcd;
+    animation-delay: 0.14s;
+}
+
+.gig-loading span:nth-child(3) {
+    background: #368d82;
+    animation-delay: 0.28s;
+}
+
+@keyframes gig-loading {
+    0%, 100% {
+        transform: scale(0.5);
+        opacity: 0.4;
+    }
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gig-pill,
+    .gig-loading span {
+        animation: none;
+    }
+
+    .gig-overlay {
+        transition: none;
+    }
+}
