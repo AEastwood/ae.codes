@@ -76,13 +76,6 @@
     width: 100%;
     height: 100%;
     pointer-events: none;
-    opacity: 0;
-    transition: opacity 1.2s ease;
-}
-
-/* The analyser only shows while music plays, fading over the drifting gradient */
-.animated-background.is-active {
-    opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -151,6 +144,13 @@ svg {
     --word-progress: 0%;
     position: relative;
     display: inline-block;
+    transition: transform 0.15s ease-out, text-shadow 0.15s ease-out;
+}
+
+/* The word being sung right now pops up and glows */
+.karaoke-word.is-singing {
+    transform: translateY(-3px) scale(1.08);
+    text-shadow: 0 0 14px rgba(140, 255, 205, 0.9);
 }
 
 .karaoke-word::after {
@@ -160,6 +160,30 @@ svg {
     color: #539D7D;
     clip-path: inset(0 calc(100% - var(--word-progress)) 0 0);
     pointer-events: none;
+}
+
+/*
+  Beat-synced punches, driven by the --music-* variables the background sets every frame:
+  the portrait, name and icons bump on each bar, and the portrait glows on every kick
+*/
+.music-punch {
+    transform: scale(calc(1 + var(--music-bar, 0) * 0.035));
+}
+
+.portrait-glow {
+    box-shadow:
+        0 0 calc(12px + var(--music-beat, 0) * 48px) calc(var(--music-intensity, 0) * 6px) rgba(140, 255, 205, calc(0.25 + var(--music-beat, 0) * 0.6)),
+        0 18px 40px rgba(15, 10, 40, 0.45);
+}
+
+.name-progress-text::after {
+    filter: drop-shadow(0 0 calc(var(--music-beat, 0) * 10px) rgba(140, 255, 205, 0.9));
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .music-punch {
+        transform: none;
+    }
 }
 
 /* Light sweeping across the portrait as it tilts while singing */

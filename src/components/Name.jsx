@@ -155,7 +155,7 @@ export default function Name() {
     return (
         <>
             {/* My Name */}
-            <div className="flex flex-col gap-3 tracking-wider mb-3 text-center">
+            <div className="flex flex-col gap-3 tracking-wider mb-3 text-center music-punch">
                 <div
                     ref={containerRef}
                     className={`text-4xl lg:text-6xl font-semibold antialiased drop-shadow-sm relative inline-block select-none ${

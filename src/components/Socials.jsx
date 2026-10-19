@@ -7,7 +7,7 @@ function Socials({ showEasterEggs, setShowGamesModal }) {
     const icons = socials?.links;
 
     return (
-        <div className="flex gap-8">
+        <div className="flex gap-8 music-punch">
             {socials && icons.map((link) => {
                 return (
                     <a key={link.name} href={link.url} target="_blank" rel="noreferrer">

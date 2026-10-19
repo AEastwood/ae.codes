@@ -22,7 +22,9 @@ export default function KaraokeLine({ line, getPlaybackTime }) {
                 const element = wordRefs.current[index];
                 if (element) {
                     // Updated directly on the element so the fill runs every frame without re-rendering
-                    element.style.setProperty('--word-progress', `${wordProgress(time, word.start, next) * 100}%`);
+                    const progress = wordProgress(time, word.start, next);
+                    element.style.setProperty('--word-progress', `${progress * 100}%`);
+                    element.classList.toggle('is-singing', progress > 0 && progress < 1);
                 }
             });
             frameId = requestAnimationFrame(update);

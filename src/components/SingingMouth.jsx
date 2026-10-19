@@ -1,18 +1,20 @@
 import { useEffect, useRef } from 'react';
 import PropTypes from 'prop-types';
-import { mouthAt } from '../utils/singing';
-import { loadLoudness, loudnessAt } from '../utils/spectrum';
+import { loadVocals, mouthAt } from '../utils/singing';
+import { loadAnalysis, loudnessAt, pulseAt } from '../utils/spectrum';
 
 // Where the mouth sits in the 460x460 Gorillaz artwork
 const MOUTH = { x: 170, y: 199, angle: -8 };
 const INK = '#10202a';
 const SKIN = '#368d82';
+// Outline of the straw in the artwork, from the lips down past where the open mouth reaches
+const STRAW_CLIP = '174.5,194.4 181.5,190.6 192.5,211.1 185.5,214.9';
 
 /*
   Lip-synced cartoon mouth drawn over the Gorillaz artwork, plus a fake-3D tilt and bounce
   applied to `tiltRef` (the portrait card). Everything updates per frame through refs, without re-rendering.
 */
-export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
+export default function SingingMouth({ active, artSrc, getPlaybackTime, tiltRef }) {
     const patchRef = useRef(null);
     const mouthRef = useRef(null);
     const lipsRef = useRef(null);
@@ -20,13 +22,19 @@ export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
     const tongueRef = useRef(null);
     const sheenRef = useRef(null);
     const activeRef = useRef(active);
-    const loudnessRef = useRef(null);
+    const analysisRef = useRef(null);
+    const vocalsRef = useRef(null);
 
     useEffect(() => {
         activeRef.current = active;
-        if (active && !loudnessRef.current) {
-            loadLoudness().then((loudness) => {
-                loudnessRef.current = loudness;
+        if (active && !analysisRef.current) {
+            loadAnalysis().then((analysis) => {
+                analysisRef.current = analysis;
+            }).catch(() => {});
+        }
+        if (active && !vocalsRef.current) {
+            loadVocals().then((vocals) => {
+                vocalsRef.current = vocals;
             }).catch(() => {});
         }
     }, [active]);
@@ -40,17 +48,19 @@ export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
         const update = () => {
             const playing = activeRef.current;
             const time = getPlaybackTime();
-            const target = playing ? mouthAt(time) : { open: 0, width: 0.8, height: 0.3 };
+            const target = playing ? mouthAt(time, vocalsRef.current) : { open: 0, width: 0.8, height: 0.3 };
 
-            // Snap open quickly, close a little slower, so it reads as singing rather than flapping
-            state.open += (target.open - state.open) * (target.open > state.open ? 0.6 : 0.35);
+            // Snap open almost instantly, close a little slower, so it reads as singing rather than flapping
+            state.open += (target.open - state.open) * (target.open > state.open ? 0.75 : 0.45);
             state.width += (target.width - state.width) * 0.3;
             state.height += (target.height - state.height) * 0.3;
             state.presence += ((playing ? 1 : 0) - state.presence) * 0.05;
 
-            const loudness = loudnessRef.current;
-            const level = playing && loudness ? loudnessAt(loudness, time) : 0;
-            state.bounce += (level ** 2 - state.bounce) * 0.4;
+            // Nod on every kick, on top of a gentler swell with the overall loudness
+            const analysis = analysisRef.current;
+            const level = playing && analysis ? loudnessAt(analysis.loudness, time) : 0;
+            const kick = playing && analysis ? pulseAt(analysis, time).beat : 0;
+            state.bounce += (Math.max(level ** 2 * 0.5, kick) - state.bounce) * 0.5;
 
             const open = state.open * state.height;
             const rx = 6 + (5 * state.width);
@@ -102,6 +112,9 @@ export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
                         <stop offset="70%" stopColor={SKIN} />
                         <stop offset="100%" stopColor={SKIN} stopOpacity="0" />
                     </radialGradient>
+                    <clipPath id="singing-straw">
+                        <polygon points={STRAW_CLIP} />
+                    </clipPath>
                 </defs>
 
                 {/* Skin patch hides the drawn lips while the mouth is open */}
@@ -111,10 +124,12 @@ export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
                     <ellipse ref={lipsRef} cx={MOUTH.x} cy={MOUTH.y} rx="9" ry="1" fill="#2a0d18" stroke={INK} strokeWidth="2.4" />
                     <rect ref={teethRef} x={MOUTH.x - 6} y={MOUTH.y} width="12" height="0" rx="1.5" fill="#f4f1e6" />
                     <ellipse ref={tongueRef} cx={MOUTH.x} cy={MOUTH.y} rx="5" ry="0" fill="#c4506a" />
-                    {/* Straw stays tucked in the corner of the mouth */}
-                    <path d="M 178 198 L 196 226" stroke={INK} strokeWidth="6.5" strokeLinecap="round" />
-                    <path d="M 178 198 L 196 226" stroke="#f0902a" strokeWidth="3.5" strokeLinecap="round" />
                 </g>
+
+                {/* The artwork's own straw, cut out and laid back over the open mouth so it lines up exactly */}
+                {artSrc ? (
+                    <image href={artSrc} x="0" y="0" width="460" height="460" preserveAspectRatio="none" clipPath="url(#singing-straw)" />
+                ) : null}
             </svg>
             <div ref={sheenRef} className="singing-sheen absolute inset-0 pointer-events-none" aria-hidden="true" />
         </>
@@ -123,6 +138,7 @@ export default function SingingMouth({ active, getPlaybackTime, tiltRef }) {
 
 SingingMouth.propTypes = {
     active: PropTypes.bool.isRequired,
+    artSrc: PropTypes.string,
     getPlaybackTime: PropTypes.func,
     tiltRef: PropTypes.shape({ current: PropTypes.any })
 };

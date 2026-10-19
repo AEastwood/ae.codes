@@ -8,9 +8,10 @@ export default function ProfilePicture() {
     const { getPlaybackTime, isPlaying, togglePlayPause } = useMusicPlayer();
     const tiltRef = useRef(null);
     const pausedImageSrc = getUri('images/me.jpeg');
+    const gorillazImageSrc = getUri('images/me-gorillaz.png');
 
     return (
-        <div className="relative">
+        <div className="relative music-punch">
             <div className="relative group">
                 {/* Hover play/pause button, hidden otherwise so it doesn't cover the singing face */}
                 <div className="absolute inset-0 z-30 pointer-events-none">
@@ -34,7 +35,9 @@ export default function ProfilePicture() {
 
                 <div ref={tiltRef} className="relative z-20 will-change-transform">
                     <div
-                        className="mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer"
+                        className={`mx-auto relative z-20 w-48 mb-2 rounded-md overflow-hidden transition duration-250 hover:shadow-xl hover:cursor-pointer ${
+                            isPlaying ? 'portrait-glow' : ''
+                        }`}
                         onClick={togglePlayPause}
                         onKeyDown={(event) => {
                             if (event.key === 'Enter' || event.key === ' ') {
@@ -56,11 +59,11 @@ export default function ProfilePicture() {
                             className={`profile-picture absolute inset-0 block w-full h-full object-cover transition-opacity duration-500 ease-in-out ${
                                 isPlaying ? 'opacity-100 visible' : 'opacity-0 invisible'
                             }`}
-                            src={getUri('images/me-gorillaz.png')}
+                            src={gorillazImageSrc}
                             alt="Adam Eastwood Gorillaz"
                             loading="lazy"
                         />
-                        <SingingMouth active={isPlaying} getPlaybackTime={getPlaybackTime} tiltRef={tiltRef} />
+                        <SingingMouth active={isPlaying} artSrc={gorillazImageSrc} getPlaybackTime={getPlaybackTime} tiltRef={tiltRef} />
                     </div>
                 </div>
             </div>
