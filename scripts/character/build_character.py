@@ -15,7 +15,7 @@ from mathutils.bvhtree import BVHTree
 
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-OUT = ARGS[ARGS.index('--out') + 1] if '--out' in ARGS else os.path.join(ROOT, 'public', 'models', 'adam-gorillaz.glb')
+OUT = ARGS[ARGS.index('--out') + 1] if '--out' in ARGS else os.path.join(ROOT, 'scripts', 'character', 'build', 'adam-gorillaz.glb')
 PREVIEW = ARGS[ARGS.index('--preview') + 1] if '--preview' in ARGS else None
 
 BPM = 139.1025

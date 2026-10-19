@@ -194,19 +194,25 @@ svg {
     mix-blend-mode: soft-light;
 }
 
-/* Gig mode: the pill that opens the 3D stage, and the full-screen overlay it lives in */
+/*
+  Gig mode: the "Back to the gig" pill (the way back in after closing it), and the full-screen
+  overlay the stage lives in
+*/
 .gig-pill {
-    color: #060d0d;
-    background: rgba(240, 214, 90, 0.92);
-    box-shadow: 0 0 calc(6px + var(--music-beat, 0) * 18px) rgba(240, 214, 90, 0.6), 0 6px 16px rgba(6, 13, 13, 0.35);
+    color: #f0d65a;
+    background: rgba(6, 13, 13, 0.5);
+    border: 1px solid rgba(240, 214, 90, 0.5);
+    box-shadow: 0 0 calc(var(--music-beat, 0) * 14px) rgba(240, 214, 90, 0.35), 0 6px 16px rgba(6, 13, 13, 0.3);
+    backdrop-filter: blur(6px);
     white-space: nowrap;
     animation: gig-pill-in 0.4s ease-out;
-    transition: transform 0.15s ease-out, background-color 0.15s ease-out;
+    transition: transform 0.15s ease-out, background-color 0.15s ease-out, color 0.15s ease-out;
 }
 
 .gig-pill:hover,
 .gig-pill:focus-visible {
-    background: rgb(250, 228, 110);
+    color: #060d0d;
+    background: rgba(240, 214, 90, 0.92);
     transform: scale(1.06);
 }
 
@@ -231,6 +237,156 @@ svg {
 
 .gig-overlay.is-shown {
     opacity: 1;
+}
+
+/* Behind the curtains the stage is simply there; they do the revealing */
+.gig-overlay.is-instant {
+    transition: none;
+}
+
+/*
+  The curtains: two copies of the page, one per half, bent into pleats by an SVG displacement filter
+  and dyed red velvet, which then draw apart like theatre curtains. Every moving part is animated
+  by curtainTransition.js with transforms and opacity, so the compositor can run it.
+*/
+.curtains {
+    position: fixed;
+    inset: 0;
+    z-index: 110;
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+}
+
+.curtain-defs {
+    position: absolute;
+}
+
+.curtain-half,
+.curtain-shadow {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    will-change: transform, opacity;
+}
+
+.curtain-half.is-left {
+    z-index: 2;
+}
+
+.curtain-half.is-right {
+    z-index: 1;
+}
+
+.curtain-cloth {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background: #3b0610;
+    isolation: isolate;
+}
+
+.curtain-fabric {
+    position: absolute;
+    top: 0;
+    overflow: hidden;
+}
+
+/* A screen-sized box for the copy, so its fixed-position background canvas lands where the real one is */
+.curtain-screen {
+    position: absolute;
+    top: 0;
+    contain: paint;
+}
+
+.curtain-tint,
+.curtain-shade,
+.curtain-sheen,
+.curtain-edge {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+}
+
+/* Velvet dye: the page's own light and shade, in deep stage red */
+.curtain-tint {
+    background: linear-gradient(to bottom, #6e0a18, #9c1426 55%, #7a0c1b);
+    mix-blend-mode: color;
+}
+
+.curtain-shade {
+    background-repeat: repeat;
+    mix-blend-mode: multiply;
+}
+
+.curtain-sheen {
+    background-repeat: repeat;
+    mix-blend-mode: screen;
+}
+
+/* The inner edges turn in and darken, and a seam shows where the two curtains meet */
+.curtain-edge {
+    mix-blend-mode: multiply;
+}
+
+.curtain-half.is-left .curtain-edge {
+    background: linear-gradient(to left, rgba(20, 0, 6, 0.9), rgba(20, 0, 6, 0.35) 10px, transparent 34px);
+}
+
+.curtain-half.is-right .curtain-edge {
+    background: linear-gradient(to right, rgba(20, 0, 6, 0.75), transparent 26px);
+}
+
+/* Gold bullion fringe on the hem: a braided band with hanging strands that bunch as the curtain gathers */
+.curtain-fringe {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: clamp(16px, 3vh, 28px);
+    background:
+        linear-gradient(to bottom, #fff0b0, #e0b04a 30%, #8a5a12 75%, #4a2e06) top / 100% 6px no-repeat,
+        radial-gradient(circle at 50% 0, rgba(60, 30, 0, 0.55) 1px, transparent 2.5px) 0 6px / 7px 4px repeat-x,
+        repeating-linear-gradient(to right, #f4cf6e 0 1.5px, #b98a2c 1.5px 3px, #6c460e 3px 3.6px, transparent 3.6px 4.6px) 0 6px / 100% 100% no-repeat;
+    -webkit-mask: linear-gradient(to bottom, #000 75%, transparent);
+    mask: linear-gradient(to bottom, #000 75%, transparent);
+    filter: drop-shadow(0 -2px 3px rgba(20, 0, 6, 0.55));
+    transform: translateY(110%);
+}
+
+/* The dark the curtains cast on the stage as they open */
+.curtain-shadow {
+    left: 0;
+    width: 80px;
+    opacity: 0;
+    transform-origin: 0 0;
+}
+
+.curtain-shadow.is-left {
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.6), transparent);
+}
+
+.curtain-shadow.is-right {
+    background: linear-gradient(to left, rgba(0, 0, 0, 0.6), transparent);
+}
+
+/* A warm follow-spot blooming in the gap as it opens, with dust drifting through it */
+.curtain-light {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    background:
+        radial-gradient(ellipse 16% 80% at 50% -6%, rgba(255, 224, 160, 0.34), rgba(255, 210, 140, 0.08) 60%, transparent 78%),
+        radial-gradient(ellipse 24% 12% at 50% 97%, rgba(255, 214, 150, 0.26), transparent 70%);
+    will-change: opacity;
+}
+
+.curtain-dust {
+    position: absolute;
+    border-radius: 9999px;
+    background: rgba(255, 240, 210, 0.9);
+    box-shadow: 0 0 4px rgba(255, 230, 180, 0.8);
+    opacity: 0;
 }
 
 /* Darkened corners and a fine halftone over the render, like a printed gig poster */
@@ -295,9 +451,5 @@ svg {
     .gig-pill,
     .gig-loading span {
         animation: none;
-    }
-
-    .gig-overlay {
-        transition: none;
     }
 }

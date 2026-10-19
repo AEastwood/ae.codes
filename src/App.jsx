@@ -26,7 +26,7 @@ function App() {
 
         <ProfilePicture />
 
-        {/* The gig pill floats under the name so it doesn't push the icons around when it appears */}
+        {/* Pressing play opens the gig; its "Back to the gig" pill floats under the name so it doesn't push the icons around */}
         <div className="relative flex flex-col items-center">
           <Name />
           <div className="absolute top-[calc(100%-0.85rem)] left-1/2 -translate-x-1/2 z-30">

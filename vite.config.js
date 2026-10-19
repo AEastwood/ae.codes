@@ -6,8 +6,6 @@ export default defineConfig({
   plugins: [react()],
   build: {
     sourcemap: false,
-    // The gig's three.js chunk is ~640 kB but only loads when someone opens the gig
-    chunkSizeWarningLimit: 700,
     rollupOptions: {
       output: {
         codeSplitting: {

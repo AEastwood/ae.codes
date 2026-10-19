@@ -26,3 +26,6 @@ coverage
 *.njsproj
 *.sln
 *.sw?
+
+# Blender exports, rebuilt by scripts/character
+scripts/character/build/

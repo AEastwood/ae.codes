@@ -1,7 +1,7 @@
 import { BPM, DOWNBEAT, FIRST_BEAT } from '../../utils/spectrum';
 
 /*
-  The gig's timing and choreography decisions, kept free of three.js so they can be tested in jsdom
+  The gig's timing and choreography decisions, kept free of drawing code so they can be tested in jsdom
   and shared with the overlay without pulling the renderer into the main bundle.
 */
 

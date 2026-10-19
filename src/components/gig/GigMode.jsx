@@ -1,15 +1,29 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { lyricsTimeline } from '../../utils/lyrics';
 import KaraokeLine from '../KaraokeLine';
+import { playCurtains } from './curtains/curtainTransition';
 
-// three.js and the stage only download when someone opens the gig
-const GigStage = lazy(() => import('./GigStage'));
+// The stage only downloads when the gig opens
+const GigStage = lazy(() => import('./stage2d/GigStage2D'));
 
 // How long a lyric stays up after its last word
 const LYRIC_HOLD_SECONDS = 1.5;
+// The reduced-motion crossfade, matching .gig-overlay's transition
+const FADE_MS = 500;
+// Stopping this close to the end of the song counts as the song finishing, which closes the gig
+const END_SLACK_SECONDS = 1.5;
+
+/*
+  How the gig comes and goes: the curtains, a plain crossfade for reduced motion, or straight away
+  where there's nothing to animate with (jsdom)
+*/
+function transitionStyle() {
+    if (typeof window.matchMedia !== 'function' || typeof Element.prototype.animate !== 'function') return 'instant';
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'fade' : 'curtains';
+}
 
 function MicIcon() {
     return (
@@ -33,20 +47,27 @@ function lyricAt(time) {
     return time <= (active.end ?? lastWord + 0.6) + LYRIC_HOLD_SECONDS ? active : null;
 }
 
-function GigOverlay({ onClose }) {
+function GigOverlay({ fade = false, leaving = false, onClose, onStageStatus, showStage = true }) {
     const { currentTime, getPlaybackTime, isPlaying, togglePlayPause } = useMusicPlayer();
     const [status, setStatus] = useState('loading');
-    const [shown, setShown] = useState(false);
+    // Behind the curtains it's there at once; the reduced-motion crossfade starts it hidden
+    const [shown, setShown] = useState(!fade);
     const dialogRef = useRef(null);
     const closeRef = useRef(null);
     const lyric = useMemo(() => lyricAt(currentTime), [currentTime]);
 
     // Fade in on the next frame so the transition has something to start from
     useEffect(() => {
-        const frame = requestAnimationFrame(() => setShown(true));
         closeRef.current?.focus();
+        if (!fade) return undefined;
+        const frame = requestAnimationFrame(() => setShown(true));
         return () => cancelAnimationFrame(frame);
-    }, []);
+    }, [fade]);
+
+    // The curtains hold closed until the stage is drawing
+    useEffect(() => {
+        onStageStatus?.(status);
+    }, [onStageStatus, status]);
 
     // Escape closes; Tab stays inside the overlay
     useEffect(() => {
@@ -79,19 +100,22 @@ function GigOverlay({ onClose }) {
     return (
         <div
             ref={dialogRef}
-            className={`gig-overlay fixed inset-0 z-[100] text-gray-100 ${shown ? 'is-shown' : ''}`}
+            className={`gig-overlay fixed inset-0 z-[100] text-gray-100 ${shown && !(fade && leaving) ? 'is-shown' : ''} ${fade ? '' : 'is-instant'}`}
             role="dialog"
             aria-modal="true"
             aria-label="Feel Good Inc. live"
+            inert={leaving}
         >
-            <Suspense fallback={null}>
-                <GigStage
-                    getPlaybackTime={getPlaybackTime}
-                    isPlaying={isPlaying}
-                    onReady={handleReady}
-                    onError={handleError}
-                />
-            </Suspense>
+            {showStage ? (
+                <Suspense fallback={null}>
+                    <GigStage
+                        getPlaybackTime={getPlaybackTime}
+                        isPlaying={isPlaying}
+                        onReady={handleReady}
+                        onError={handleError}
+                    />
+                </Suspense>
+            ) : null}
 
             <div className="gig-vignette absolute inset-0 pointer-events-none" aria-hidden="true" />
 
@@ -107,7 +131,7 @@ function GigOverlay({ onClose }) {
                             <p className="text-sm tracking-widest uppercase text-gray-300">Setting up the stage</p>
                         </>
                     ) : (
-                        <p className="text-sm text-gray-300">The stage needs WebGL, which this browser can&apos;t run.</p>
+                        <p className="text-sm text-gray-300">The stage couldn&apos;t start in this browser.</p>
                     )}
                 </div>
             ) : null}
@@ -150,38 +174,177 @@ function GigOverlay({ onClose }) {
 }
 
 GigOverlay.propTypes = {
-    onClose: PropTypes.func.isRequired
+    fade: PropTypes.bool,
+    leaving: PropTypes.bool,
+    onClose: PropTypes.func.isRequired,
+    onStageStatus: PropTypes.func,
+    showStage: PropTypes.bool
 };
 
 /*
-  "Watch the gig": a pill that shows while the music plays and opens a full-screen 3D stage where
-  the Gorillaz version of me performs the song live. The overlay stays open if the music is paused.
+  Gig mode: pressing play anywhere on the site turns the page into stage curtains that part on a
+  full-screen stage where the Gorillaz version of me performs the song live. Closing it (or the song
+  ending) draws the curtains back and settles them into the page with the music still going, where a
+  small "Back to the gig" pill under the name goes back in. Pausing inside the gig keeps it open.
 */
 export default function GigMode() {
-    const { isPlaying } = useMusicPlayer();
-    const [open, setOpen] = useState(false);
+    const { currentTime, duration, isPlaying } = useMusicPlayer();
+    // 'page', 'gig', or 'fading' while the reduced-motion crossfade takes it away
+    const [view, setView] = useState('page');
+    const [leaving, setLeaving] = useState(false);
+    const [moving, setMoving] = useState(false);
+    const [fade, setFade] = useState(false);
+    // Opening through the curtains, the stage waits until the page has folded so its setup can't stall the fold
+    const [showStage, setShowStage] = useState(true);
+    // The pill only offers a way back after they've left the gig, and goes once the music stops
+    const [canReturn, setCanReturn] = useState(false);
+    const viewRef = useRef(view);
+    const curtainsRef = useRef(null);
+    const stageReadyRef = useRef(false);
     const pillRef = useRef(null);
+    const returnFocusRef = useRef(null);
+    const wasPlayingRef = useRef(isPlaying);
+    const playedToRef = useRef(0);
+    const fadeTimerRef = useRef(0);
 
-    const close = useCallback(() => {
-        setOpen(false);
-        // Back to where they were, if the pill is still there to focus
-        requestAnimationFrame(() => pillRef.current?.focus());
+    const show = useCallback((next) => {
+        viewRef.current = next;
+        setView(next);
     }, []);
+
+    // Back on the page: focus the pill if it's there, otherwise wherever they were before the gig
+    const settleFocus = useCallback(() => {
+        requestAnimationFrame(() => {
+            const active = document.activeElement;
+            if (active && active !== document.body) return;
+            const target = pillRef.current ?? returnFocusRef.current;
+            if (target?.isConnected) target.focus();
+        });
+    }, []);
+
+    const handleCovered = useCallback(() => show('page'), [show]);
+    const handleFolded = useCallback(() => setShowStage(true), []);
+
+    const handleFinish = useCallback((end) => {
+        curtainsRef.current = null;
+        setMoving(false);
+        if (end === 'page') settleFocus();
+    }, [settleFocus]);
+
+    const handleStageStatus = useCallback((status) => {
+        stageReadyRef.current = status !== 'loading';
+    }, []);
+
+    const enterGig = useCallback(() => {
+        clearTimeout(fadeTimerRef.current);
+        setLeaving(false);
+        // Halfway through closing: turn the curtains back round
+        if (curtainsRef.current) {
+            curtainsRef.current.toward('gig');
+            setShowStage(true);
+            show('gig');
+            return;
+        }
+        if (viewRef.current === 'gig') return;
+        returnFocusRef.current = document.activeElement;
+        stageReadyRef.current = false;
+        const style = transitionStyle();
+        const source = document.querySelector('.app');
+        if (style === 'curtains' && source) {
+            curtainsRef.current = playCurtains({
+                source,
+                direction: 'open',
+                isStageReady: () => stageReadyRef.current,
+                onFolded: handleFolded,
+                onCovered: handleCovered,
+                onFinish: handleFinish
+            });
+            setMoving(true);
+        }
+        setShowStage(!curtainsRef.current);
+        setFade(style === 'fade');
+        show('gig');
+    }, [handleCovered, handleFinish, handleFolded, show]);
+
+    const leaveGig = useCallback(() => {
+        setCanReturn(true);
+        if (curtainsRef.current) {
+            setLeaving(true);
+            curtainsRef.current.toward('page');
+            return;
+        }
+        if (viewRef.current !== 'gig') return;
+        setLeaving(true);
+        const style = transitionStyle();
+        const source = document.querySelector('.app');
+        if (style === 'curtains' && source) {
+            curtainsRef.current = playCurtains({
+                source,
+                direction: 'close',
+                onCovered: handleCovered,
+                onFinish: handleFinish
+            });
+            setMoving(true);
+        } else if (style === 'fade') {
+            show('fading');
+            fadeTimerRef.current = setTimeout(() => {
+                show('page');
+                settleFocus();
+            }, FADE_MS);
+        } else {
+            show('page');
+            settleFocus();
+        }
+    }, [handleCovered, handleFinish, settleFocus, show]);
+
+    useEffect(() => {
+        if (isPlaying) playedToRef.current = currentTime;
+    }, [currentTime, isPlaying]);
+
+    // Before paint, so the curtains are in place before the stage underneath them ever shows
+    useLayoutEffect(() => {
+        const wasPlaying = wasPlayingRef.current;
+        wasPlayingRef.current = isPlaying;
+        if (isPlaying && !wasPlaying) {
+            enterGig();
+        } else if (!isPlaying && wasPlaying) {
+            // The song finished rather than being paused
+            if (duration > 0 && playedToRef.current >= duration - END_SLACK_SECONDS) leaveGig();
+            setCanReturn(false);
+        }
+    }, [duration, enterGig, isPlaying, leaveGig]);
+
+    useEffect(() => () => {
+        clearTimeout(fadeTimerRef.current);
+        curtainsRef.current?.cancel();
+        curtainsRef.current = null;
+    }, []);
+
+    const overlayOpen = view !== 'page';
 
     return (
         <>
-            {isPlaying ? (
+            {isPlaying && canReturn && !overlayOpen && !moving ? (
                 <button
                     ref={pillRef}
                     type="button"
-                    onClick={() => setOpen(true)}
+                    onClick={enterGig}
                     className="gig-pill flex items-center gap-1.5 rounded-full px-3 py-1 text-sm tracking-wide"
                 >
                     <MicIcon />
-                    Watch the gig
+                    Back to the gig
                 </button>
             ) : null}
-            {open ? createPortal(<GigOverlay onClose={close} />, document.body) : null}
+            {overlayOpen ? createPortal(
+                <GigOverlay
+                    fade={fade}
+                    leaving={leaving || view === 'fading'}
+                    onClose={leaveGig}
+                    onStageStatus={handleStageStatus}
+                    showStage={showStage}
+                />,
+                document.body
+            ) : null}
         </>
     );
 }
